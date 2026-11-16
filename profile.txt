@@ -15,7 +15,7 @@ expertise=Project Management, AI Applications, Digital Marketing
 education=MSc. Digital Business Management
 
 email=vungangi@hs-pforzheim.de
-linkedin=giang-vu-132229213
+linkedin=https://www.linkedin.com/in/giang-vu-132229213/
 
 about1=Giang earned her B.S. in International Business Administration from Foreign Trade University,Vietnam
 about2=and gained international study experience in Germany and Japan.
