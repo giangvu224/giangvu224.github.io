@@ -8,9 +8,9 @@ name=Giang Vu
 
 title1=Master Student at Hochschule Pforzheim
 
-title2=Marketing Localization Manager
+title2=Localization Project Manager
 
-expertise=Project Management, AI Applications, Digital Marketing
+expertise=Project Management, AI Applications, Website Analysis, Multilingual (DE/EN/VN)
 
 education=MSc. Digital Business Management
 
@@ -18,10 +18,10 @@ email=vungangi@hs-pforzheim.de
 linkedin=https://www.linkedin.com/in/giang-vu-132229213/
 
 about1=Giang earned her B.S. in International Business Administration from Foreign Trade University,Vietnam
-about2=and gained international study experience in Germany and Japan.
-about3=Named among the world's top 2% scientists by Stanford University & Elsevier for seven consecutive years (2020-2026).
-about4=Recipient of the 2024 Presidential National Teaching Award, Taiwan
+about2=and gained international studying experience in Germany and Japan.
+about3= 
+about4= 
 
-phone=+49 155-6769
+phone=+49 155-654-67906
 
-location=Stuttgart-West, Germany
+location=Seyfferstrasse, 70197 Stuttgart-West, Germany
