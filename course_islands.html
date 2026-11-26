@@ -4,1390 +4,2250 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pforzheim AI Course Islands by Prof Luarn</title>
+  <meta name="description" content="Interactive 3D Course Island constellation for Pforzheim University AI students, designed by Prof Luarn.">
+
+  <!-- Google Fonts: Plus Jakarta Sans for soft rounded readability -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  <!-- Three.js and OrbitControls from CDN -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Three.js and OrbitControls from standard CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <style>
+    /* ==========================================================================
+       CSS Variables & Theme Foundations
+       ========================================================================== */
     :root {
-      --bg-sky-top: #dbeafe;
-      --bg-sky-bottom: #fdf2f8;
-      --panel-bg: rgba(255, 255, 255, 0.94);
-      --panel-border: rgba(226, 232, 240, 0.9);
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --accent: #6366f1;
-      --accent-hover: #4f46e5;
-      --accent-soft: rgba(99, 102, 241, 0.12);
-      --card-bg: #f8fafc;
-      --card-border: #e2e8f0;
-      --success: #10b981;
-      --shadow-soft: 0 12px 36px rgba(15, 23, 42, 0.08);
-      --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --bg-gradient-top: #ffd1dc; /* Baby Pink Dream Sky */
+      --bg-gradient-bottom: #ffe5ec; /* Soft Floral Blossom Pink */
+      --sky-glow: rgba(255, 240, 245, 0.75);
+      --surface-glass: rgba(255, 255, 255, 0.88);
+      --surface-border: rgba(255, 209, 220, 0.75);
+      --surface-shadow: 0 12px 36px rgba(224, 112, 148, 0.18);
+      --text-main: #2e1724;
+      --text-muted: #6e4d5e;
+      --text-soft: #9c7185;
+      --accent: #db3a6b; /* Vibrant Blossom Rose */
+      --accent-soft: #ffe3ec;
+      --accent-hover: #bd2654;
+      --tag-bg: #fff0f5;
+      --card-bg: #ffffff;
+      --card-border: #fad2e1;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --transition-smooth: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-      --island-glow: 0 0 24px rgba(99, 102, 241, 0.35);
     }
 
-    /* Low Stimulation Mode Overrides */
+    /* Low-Stimulation Theme Overrides */
     body.low-stim {
-      --bg-sky-top: #f1f5f9;
-      --bg-sky-bottom: #f1f5f9;
-      --panel-bg: #ffffff;
-      --panel-border: #cbd5e1;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --accent: #475569;
-      --accent-hover: #334155;
+      --bg-gradient-top: #e7ecf0;
+      --bg-gradient-bottom: #e7ecf0;
+      --sky-glow: transparent;
+      --surface-glass: #ffffff;
+      --surface-border: #ccd4dc;
+      --surface-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --text-main: #19222d;
+      --text-muted: #3d4a58;
+      --text-soft: #5b6875;
+      --accent: #3a506b;
       --accent-soft: #e2e8f0;
+      --accent-hover: #2b3d52;
       --card-bg: #f8fafc;
       --card-border: #cbd5e1;
-      --island-glow: none;
-      letter-spacing: 0.02em;
-      line-height: 1.7;
+      font-size: 16px;
+      line-height: 1.65;
+      letter-spacing: 0.015em;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* In low-stimulation mode, turn off smooth CSS transitions and animations */
+    body.low-stim * {
+      animation: none !important;
+      transition: background-color 0.1s ease, color 0.1s ease !important;
+    }
 
-    body {
-      font-family: var(--font-body);
-      background: linear-gradient(180deg, var(--bg-sky-top) 0%, var(--bg-sky-bottom) 100%);
-      color: var(--text-main);
-      height: 100vh;
+    /* ==========================================================================
+       Reset & Base Styles
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      position: relative;
+      font-family: var(--font-sans);
+      color: var(--text-main);
+      background: linear-gradient(175deg, var(--bg-gradient-top) 0%, var(--bg-gradient-bottom) 100%);
       user-select: none;
-      -webkit-font-smoothing: antialiased;
     }
 
-    /* 3D Canvas Canvas Container */
+    button, input, textarea, select {
+      font-family: inherit;
+    }
+
+    /* Accessibility Focus Outline */
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* ==========================================================================
+       3D WebGL Canvas Layer
+       ========================================================================== */
     #canvas-container {
       position: absolute;
-      inset: 0;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       z-index: 1;
+      cursor: grab;
     }
 
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-      outline: none;
+    #canvas-container:active {
+      cursor: grabbing;
     }
 
-    /* Top Floating Header */
-    header {
+    /* ==========================================================================
+       UI Header & Navigation Toolbar
+       ========================================================================== */
+    header.site-header {
       position: absolute;
       top: 18px;
-      left: 24px;
-      right: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      left: 20px;
+      right: 20px;
       z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       pointer-events: none;
+      gap: 12px;
     }
 
-    .brand-group {
+    .brand-cluster {
       pointer-events: auto;
-      background: var(--panel-bg);
+      background: var(--surface-glass);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       padding: 10px 18px;
-      border-radius: 50px;
-      border: 1px solid var(--panel-border);
-      box-shadow: var(--shadow-soft);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--surface-shadow);
       display: flex;
       align-items: baseline;
       gap: 10px;
     }
 
     .brand-title {
-      font-size: 1.12rem;
+      font-size: 1.125rem;
       font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
     }
 
-    .brand-by {
-      font-size: 0.82rem;
+    .brand-author {
+      font-size: 0.85rem;
       font-weight: 500;
       color: var(--text-muted);
-      letter-spacing: 0.01em;
+      white-space: nowrap;
+      padding-left: 4px;
+      border-left: 2px solid var(--card-border);
     }
 
-    /* Header Action Controls */
-    .controls-group {
+    .top-toolbar {
       pointer-events: auto;
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 6px 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--surface-shadow);
     }
 
-    .btn {
-      font-family: inherit;
-      font-size: 0.82rem;
-      font-weight: 600;
-      padding: 8px 14px;
-      border-radius: 50px;
-      border: 1px solid var(--panel-border);
-      background: var(--panel-bg);
-      backdrop-filter: blur(12px);
-      color: var(--text-main);
-      cursor: pointer;
+    .tool-btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s ease;
-      box-shadow: var(--shadow-soft);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
     }
 
-    .btn:hover {
-      background: #ffffff;
-      border-color: rgba(99, 102, 241, 0.4);
-      transform: translateY(-1px);
+    .tool-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
     }
 
-    .btn:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
+    .tool-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(94, 114, 228, 0.3);
     }
 
-    .btn.active {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
+    .tool-btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
     }
 
-    .btn.active:hover {
-      background: var(--accent-hover);
-    }
-
-    /* Sound Volume Slider widget */
-    .volume-widget {
+    /* Audio volume sub-slider */
+    .audio-group {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 4px 12px;
-      border-radius: 50px;
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      box-shadow: var(--shadow-soft);
+      gap: 4px;
     }
 
-    .volume-widget input[type="range"] {
-      width: 70px;
-      accent-color: var(--accent);
+    .vol-slider-wrap {
+      display: flex;
+      align-items: center;
+      width: 60px;
+      padding: 0 4px;
+    }
+
+    .vol-slider-wrap input[type="range"] {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: #ccd5e0;
+      outline: none;
+      -webkit-appearance: none;
       cursor: pointer;
     }
 
-    /* Floating "How to use" hint pill */
-    #hint-pill {
+    .vol-slider-wrap input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       Interactive Instructions Hint
+       ========================================================================== */
+    .hint-bubble {
       position: absolute;
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--panel-bg);
-      backdrop-filter: blur(14px);
-      border: 1px solid var(--panel-border);
+      z-index: 15;
+      background: var(--surface-glass);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--surface-border);
       padding: 8px 18px;
-      border-radius: 50px;
-      font-size: 0.82rem;
+      border-radius: var(--radius-full);
+      box-shadow: var(--surface-shadow);
+      font-size: 0.825rem;
       font-weight: 500;
       color: var(--text-muted);
-      box-shadow: var(--shadow-soft);
-      z-index: 20;
-      pointer-events: auto;
       display: flex;
       align-items: center;
-      gap: 10px;
-      transition: opacity 0.5s ease;
+      gap: 8px;
+      pointer-events: auto;
+      transition: opacity 0.4s ease, transform 0.4s ease;
     }
 
-    #hint-pill button {
-      background: none;
+    .hint-bubble.dismissed {
+      opacity: 0;
+      transform: translate(-50%, 15px);
+      pointer-events: none;
+    }
+
+    .hint-close {
       border: none;
-      color: var(--text-muted);
+      background: none;
       cursor: pointer;
-      font-size: 0.95rem;
-      padding: 0 4px;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      padding: 2px;
+      font-size: 1rem;
+      border-radius: 50%;
     }
 
-    /* 3D HTML Labels above islands */
-    .island-label {
+    .hint-close:hover {
+      color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       Floating 3D Island Labels (HUD Layer)
+       ========================================================================== */
+    #island-labels-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .island-hud-tag {
       position: absolute;
       transform: translate(-50%, -100%);
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(8px);
-      border: 1.5px solid #e2e8f0;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #1e293b;
-      cursor: pointer;
       pointer-events: auto;
-      z-index: 10;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-      transition: all 0.25s ease;
-      white-space: nowrap;
       display: flex;
       align-items: center;
       gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      background: var(--surface-glass);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--surface-border);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      color: var(--text-main);
+      font-size: 0.775rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.2s ease, background 0.2s ease;
     }
 
-    .island-label:hover, .island-label:focus-visible {
-      transform: translate(-50%, -108%) scale(1.05);
+    .island-hud-tag:hover, .island-hud-tag:focus-visible {
+      transform: translate(-50%, -115%) scale(1.05);
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(94, 114, 228, 0.22);
       border-color: var(--accent);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
-      outline: none;
     }
 
-    .island-label .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+    .island-hud-letter {
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: var(--accent-soft);
-      color: var(--accent);
+      background: var(--accent);
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.72rem;
       font-weight: 800;
     }
 
-    /* Side Content Panel (Drawer) */
-    #island-drawer {
+    /* ==========================================================================
+       Slide-out Content Drawer & Panels
+       ========================================================================== */
+    .drawer-overlay {
       position: absolute;
-      top: 18px;
-      right: 24px;
-      bottom: 24px;
-      width: 440px;
-      max-width: calc(100vw - 48px);
-      background: var(--panel-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--panel-border);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 30;
+      background: rgba(20, 28, 40, 0.2);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .island-drawer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 520px;
+      max-width: 92vw;
+      height: 100%;
       z-index: 40;
+      background: var(--card-bg);
+      border-left: 1px solid var(--card-border);
+      box-shadow: -8px 0 36px rgba(40, 50, 70, 0.14);
       display: flex;
       flex-direction: column;
-      transform: translateX(calc(100% + 40px));
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      overflow: hidden;
-    }
-
-    #island-drawer.open {
-      transform: translateX(0);
-    }
-
-    body.low-stim #island-drawer {
-      transition: transform 0.1s ease;
-    }
-
-    .drawer-header {
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--panel-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.6);
-    }
-
-    .drawer-title-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .drawer-island-badge {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-weight: 800;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .drawer-title {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: #0f172a;
-      line-height: 1.25;
-    }
-
-    .drawer-subtitle {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .close-btn {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 1px solid var(--panel-border);
-      background: #ffffff;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: all 0.2s;
-    }
-
-    .close-btn:hover {
-      background: #f1f5f9;
-      color: var(--text-main);
-    }
-
-    .drawer-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 22px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
+      transform: translateX(105%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: text;
     }
 
-    .unit-intro {
-      font-size: 0.9rem;
-      line-height: 1.6;
-      color: var(--text-main);
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      padding: 14px 18px;
-      border-radius: var(--radius-md);
+    .island-drawer.open {
+      transform: translateX(0);
     }
 
-    .section-heading {
-      font-size: 0.8rem;
+    /* Drawer Header */
+    .drawer-header {
+      padding: 22px 26px 16px 26px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      background: linear-gradient(180deg, rgba(245, 248, 252, 0.7) 0%, transparent 100%);
+    }
+
+    .drawer-meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
       font-weight: 700;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
       margin-bottom: 8px;
+    }
+
+    .drawer-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.25;
+      color: var(--text-main);
+    }
+
+    .drawer-close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text-muted);
+      cursor: pointer;
       display: flex;
       align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      transition: var(--transition-smooth);
+    }
+
+    .drawer-close-btn:hover {
+      background: #f1f4f9;
+      color: var(--text-main);
+      transform: rotate(90deg);
+    }
+
+    /* Drawer Scrollable Content */
+    .drawer-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .drawer-intro {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      background: #f8fafc;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      border-left: 4px solid var(--accent);
+    }
+
+    /* Section Subheadings */
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--card-border);
+    }
+
+    /* Lessons list styling */
+    .lessons-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .lesson-item {
+      display: flex;
+      gap: 14px;
+      padding: 12px 14px;
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .lesson-item:hover {
+      border-color: rgba(94, 114, 228, 0.4);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      transform: translateY(-1px);
+    }
+
+    .lesson-badge {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      height: fit-content;
+      flex-shrink: 0;
+    }
+
+    .lesson-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .lesson-name {
+      font-size: 0.925rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .lesson-desc {
+      font-size: 0.825rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    /* Interactive Activity Container */
+    .activity-container {
+      background: #fdfdfe;
+      border: 1px solid #e1e7f0;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    }
+
+    .activity-header {
+      margin-bottom: 14px;
+    }
+
+    .activity-tag {
+      font-size: 0.725rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #7b4ee4;
+      background: #f3ebff;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .activity-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .activity-instructions {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Drawer Footer */
+    .drawer-footer {
+      padding: 16px 26px;
+      border-top: 1px solid var(--card-border);
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .btn-overview {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--card-border);
+      background: #f8fafc;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-overview:hover {
+      background: #eef2f6;
+      border-color: #cbd5e1;
+    }
+
+    .drawer-nav-group {
+      display: flex;
       gap: 6px;
     }
 
-    /* Lesson List Accordion / Card Style */
-    .lesson-list {
+    .drawer-nav-btn {
+      padding: 8px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--card-border);
+      background: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .drawer-nav-btn:hover {
+      color: var(--text-main);
+      background: #f1f5f9;
+    }
+
+    /* ==========================================================================
+       Activity Specific Widget Styles
+       ========================================================================== */
+    /* Game A: Matching Tool to Task */
+    .matching-game {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .match-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .match-col {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
-    .lesson-card {
-      background: #ffffff;
+    .match-card {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--card-border);
-      border-radius: var(--radius-md);
-      padding: 12px 16px;
-      transition: all 0.2s ease;
-    }
-
-    .lesson-card:hover {
-      border-color: rgba(99, 102, 241, 0.4);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    }
-
-    .lesson-num {
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--accent);
-      margin-bottom: 2px;
-    }
-
-    .lesson-title {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 3px;
-    }
-
-    .lesson-desc {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    /* Activity Container */
-    .activity-box {
       background: #ffffff;
-      border: 1.5px solid var(--card-border);
-      border-radius: var(--radius-md);
-      padding: 18px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: left;
+      transition: var(--transition-smooth);
+      min-height: 48px;
       display: flex;
-      flex-direction: column;
-      gap: 14px;
+      align-items: center;
     }
 
-    .activity-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 20px;
+    .match-card:hover {
+      border-color: var(--accent);
+      background: #fcfdff;
+    }
+
+    .match-card.selected {
+      border-color: var(--accent);
       background: var(--accent-soft);
       color: var(--accent);
-      font-size: 0.72rem;
-      font-weight: 700;
-      align-self: flex-start;
+      box-shadow: 0 0 0 2px var(--accent);
     }
 
-    .activity-title {
-      font-size: 0.96rem;
-      font-weight: 800;
-      color: #0f172a;
+    .match-card.matched {
+      border-color: #48bb78;
+      background: #f0fff4;
+      color: #276749;
+      cursor: default;
     }
 
-    .activity-instructions {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-    }
-
-    /* Interactive Elements inside Activities */
-    .match-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .match-btn {
-      flex: 1;
+    .feedback-banner {
+      font-size: 0.825rem;
       padding: 8px 12px;
-      border: 1px solid var(--card-border);
       border-radius: var(--radius-sm);
-      background: #f8fafc;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s;
+      display: none;
+      margin-top: 8px;
+      line-height: 1.4;
     }
 
-    .match-btn:hover { background: #f1f5f9; }
-    .match-btn.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
-    .match-btn.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.15); color: #047857; }
-
-    .scenario-btn {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-sm);
-      background: #f8fafc;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: left;
-      margin-bottom: 6px;
-      transition: all 0.2s;
+    .feedback-banner.show {
+      display: block;
     }
 
-    .scenario-btn:hover { background: #f1f5f9; }
-    .scenario-btn.correct { background: rgba(16, 185, 129, 0.15); border-color: var(--success); color: #047857; }
-    .scenario-btn.wrong { background: rgba(239, 68, 68, 0.12); border-color: #ef4444; color: #b91c1c; }
+    .feedback-banner.success {
+      background: #f0fff4;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+    }
 
-    .pipeline-order-list {
+    .feedback-banner.info {
+      background: #ebf8ff;
+      color: #2b6cb0;
+      border: 1px solid #bee3f8;
+    }
+
+    /* Game B: Scenario Picker */
+    .scenario-card {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .scenario-prompt {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .choice-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .choice-btn {
+      padding: 6px 12px;
+      font-size: 0.775rem;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--card-border);
+      background: #f8fafc;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .choice-btn:hover {
+      background: #edf2f7;
+    }
+
+    .choice-btn.correct {
+      background: #def7ec;
+      border-color: #31c48d;
+      color: #03543f;
+    }
+
+    .choice-btn.incorrect {
+      background: #fde8e8;
+      border-color: #f98080;
+      color: #9b1c1c;
+    }
+
+    /* Game C: Reorder Pipeline */
+    .pipeline-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     .pipeline-step {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      background: #f8fafc;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .pipeline-step select {
-      padding: 4px 8px;
-      border-radius: 4px;
-      border: 1px solid var(--card-border);
+      justify-content: space-between;
+      padding: 10px 14px;
       background: #ffffff;
-      font-family: inherit;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .step-arrows {
+      display: flex;
+      gap: 4px;
+    }
+
+    .arrow-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1px solid var(--card-border);
+      background: #f8fafc;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.8rem;
     }
 
-    .checkbox-pill-grid {
+    .arrow-btn:hover {
+      background: #edf2f7;
+    }
+
+    /* Game D: Design your helper */
+    .helper-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .helper-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .helper-select {
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--card-border);
+      font-size: 0.85rem;
+      background: #ffffff;
+      color: var(--text-main);
+    }
+
+    .features-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
 
-    .check-pill {
+    .feature-check-label {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 10px;
-      background: #f8fafc;
+      font-size: 0.775rem;
+      color: var(--text-main);
+      cursor: pointer;
+      padding: 6px 8px;
+      background: #ffffff;
       border: 1px solid var(--card-border);
       border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      cursor: pointer;
     }
 
-    .check-pill:hover { background: #f1f5f9; }
-
-    .feedback-banner {
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      display: none;
-      margin-top: 6px;
+    .helper-output {
+      margin-top: 10px;
+      padding: 12px;
+      background: #f7faff;
+      border: 1px dashed #b3c5ff;
+      border-radius: var(--radius-md);
+      font-size: 0.825rem;
       line-height: 1.5;
+      color: #2a3d66;
     }
 
-    .feedback-banner.show { display: block; }
-    .feedback-banner.success { background: rgba(16, 185, 129, 0.12); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .feedback-banner.info { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.3); }
-
-    /* Accessibility Skip 3D List Modal */
-    #accessible-list-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(10px);
-      z-index: 100;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    #accessible-list-modal.open { display: flex; }
-
-    .accessible-card {
+    /* Game E: Agent vs Chatbot */
+    .sorting-card {
       background: #ffffff;
-      border-radius: var(--radius-lg);
-      max-width: 600px;
-      width: 100%;
-      max-height: 80vh;
-      overflow-y: auto;
-      padding: 28px;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .sorting-statement {
+      font-size: 0.825rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .sorting-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .reflection-box {
+      margin-top: 14px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+      gap: 6px;
     }
 
-    /* Fallback for WebGL */
-    #webgl-fallback {
+    .reflection-textarea {
+      width: 100%;
+      height: 70px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--card-border);
+      font-size: 0.825rem;
+      resize: vertical;
+    }
+
+    /* Game F: Tool Explorer */
+    .tool-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tool-tile {
+      padding: 10px;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      background: #ffffff;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .tool-tile:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .tool-tile.active-comp {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 700;
+    }
+
+    .tool-tile-title {
+      font-size: 0.825rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .tool-tile-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ==========================================================================
+       Accessible "Skip 3D View" Text Modal
+       ========================================================================== */
+    .accessible-modal {
       position: absolute;
-      inset: 0;
-      background: #f8fafc;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       display: none;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 40px;
-      text-align: center;
-      z-index: 5;
+      padding: 20px;
     }
 
-    /* Responsive adjustments */
+    .accessible-modal.show {
+      display: flex;
+    }
+
+    .accessible-dialog {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.16);
+      width: 640px;
+      max-width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: text;
+    }
+
+    .accessible-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .accessible-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .accessible-island-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      text-align: left;
+      transition: var(--transition-smooth);
+    }
+
+    .accessible-island-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* ==========================================================================
+       Fallback Banner for WebGL Unavailable
+       ========================================================================== */
+    .webgl-fallback {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      max-width: 480px;
+      display: none;
+    }
+
+    /* ==========================================================================
+       Mobile Responsive Adjustments
+       ========================================================================== */
     @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+      header.site-header {
         top: 12px;
         left: 12px;
         right: 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
       }
-      #island-drawer {
-        top: 70px;
-        right: 12px;
+
+      .brand-cluster {
+        justify-content: space-between;
+      }
+
+      .top-toolbar {
+        justify-content: space-between;
+        overflow-x: auto;
+      }
+
+      .vol-slider-wrap {
+        display: none; /* Keep clean on small screens */
+      }
+
+      .island-drawer {
+        width: 100%;
+        max-width: 100%;
+        height: 78%;
+        top: auto;
+        bottom: 0;
+        border-radius: 24px 24px 0 0;
+        transform: translateY(105%);
+      }
+
+      .island-drawer.open {
+        transform: translateY(0);
+      }
+
+      .match-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hint-bubble {
         bottom: 12px;
-        width: calc(100vw - 24px);
+        font-size: 0.75rem;
+        padding: 6px 14px;
+        max-width: 90%;
       }
-      .brand-group { padding: 8px 14px; }
-      .brand-title { font-size: 0.95rem; }
-      .brand-by { font-size: 0.72rem; }
-      .btn { padding: 6px 12px; font-size: 0.75rem; }
-      #hint-pill { bottom: 12px; font-size: 0.74rem; width: 90%; justify-content: center; }
     }
   </style>
 </head>
 <body>
 
-  <!-- 3D Scene Container -->
-  <div id="canvas-container">
-    <div id="webgl-fallback">
-      <h2>3D Hardware Acceleration Unavailable</h2>
-      <p style="margin-top: 10px; color: var(--text-muted); max-width: 480px;">
-        Your browser does not currently support WebGL rendering. You can still access the complete course overview and all activities using the Accessible List View below:
-      </p>
-      <button class="btn active" style="margin-top: 20px;" onclick="openAccessibleModal()">Open Accessible Course List</button>
-    </div>
-  </div>
+  <!-- WebGL Canvas Container -->
+  <div id="canvas-container" role="region" aria-label="3D Floating Islands View"></div>
 
-  <!-- Top Floating Header -->
-  <header>
-    <div class="brand-group">
-      <div class="brand-title">
-        <span>🏝️</span>
-        <span>Pforzheim AI Course Islands</span>
+  <!-- Island HUD Labels (Projected onto 2D screen above 3D islands) -->
+  <div id="island-labels-layer" aria-hidden="true"></div>
+
+  <!-- Top Header / Bar -->
+  <header class="site-header">
+    <div class="brand-cluster" role="banner">
+      <h1 class="brand-title">Pforzheim AI Course Islands</h1>
+      <span class="brand-author">by Prof Luarn</span>
+    </div>
+
+    <nav class="top-toolbar" aria-label="Course Controls">
+      <!-- Skip 3D View / Course Index -->
+      <button id="btn-skip-3d" class="tool-btn" aria-label="Open accessible text list of islands">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <span>Course Index</span>
+      </button>
+
+      <!-- Low-Stimulation Mode Toggle -->
+      <button id="btn-low-stim" class="tool-btn" aria-pressed="false" title="Reduce motion, simplify visuals and mute music">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <span>Low-stimulation</span>
+      </button>
+
+      <!-- Ambient Audio Synthesizer Toggle & Volume -->
+      <div class="audio-group">
+        <button id="btn-audio-toggle" class="tool-btn" aria-pressed="false" title="Toggle peaceful ambient background music">
+          <svg id="audio-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+          <svg id="audio-icon-on" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <span>Music</span>
+        </button>
+        <div class="vol-slider-wrap" title="Ambient Music Volume">
+          <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.35" aria-label="Music volume">
+        </div>
       </div>
-      <span class="brand-by">by Prof Luarn</span>
-    </div>
 
-    <div class="controls-group">
-      <!-- Back to overview button -->
-      <button class="btn" id="btn-overview" onclick="resetToOverview()" aria-label="Reset camera to course overview">
-        <span>🌐</span>
+      <!-- Overview Reset Button -->
+      <button id="btn-reset-cam" class="tool-btn" title="Reset camera to view all islands">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
         <span>Overview</span>
       </button>
-
-      <!-- Music toggle & volume -->
-      <button class="btn" id="btn-music" onclick="toggleAudio()" aria-label="Toggle ambient background music">
-        <span id="music-icon">🔇</span>
-        <span id="music-label">Music: Off</span>
-      </button>
-
-      <div class="volume-widget" id="volume-wrapper" style="display: none;">
-        <span style="font-size: 0.75rem; color: var(--text-muted);">Vol</span>
-        <input type="range" id="volume-slider" min="0" max="100" value="40" oninput="setAudioVolume(this.value)" aria-label="Audio Volume Slider">
-      </div>
-
-      <!-- Low-stimulation Mode Toggle -->
-      <button class="btn" id="btn-low-stim" onclick="toggleLowStim()" aria-label="Toggle low stimulation mode">
-        <span>🌿</span>
-        <span>Low-stimulation mode</span>
-      </button>
-
-      <!-- Accessible Text-Only Course List -->
-      <button class="btn" onclick="openAccessibleModal()" aria-label="Open text-only course list">
-        <span>📋</span>
-        <span>Skip 3D View</span>
-      </button>
-    </div>
+    </nav>
   </header>
 
-  <!-- Interactive 3D Island Labels (Anchored to 3D Space) -->
-  <div id="labels-container">
-    <!-- Injected dynamically based on 6 islands -->
+  <!-- First-time Help Hint Bubble -->
+  <div class="hint-bubble" id="hint-bubble" role="status">
+    <span>✨ <strong>How to explore:</strong> Drag to rotate, scroll to zoom, click an island to open lessons.</span>
+    <button class="hint-close" id="btn-hint-close" aria-label="Dismiss hint">✕</button>
   </div>
 
-  <!-- First-load Helpful Hint -->
-  <div id="hint-pill" role="status">
-    <span>✨ <strong>Navigation:</strong> Drag to rotate, scroll to zoom, click an island to explore.</span>
-    <button onclick="document.getElementById('hint-pill').style.opacity='0'; setTimeout(()=>document.getElementById('hint-pill').remove(), 500);" aria-label="Dismiss navigation hint">✕</button>
-  </div>
+  <!-- Slide-out Drawer Overlay Backdrop -->
+  <div class="drawer-overlay" id="drawer-overlay"></div>
 
-  <!-- Island Content Drawer -->
-  <aside id="island-drawer" aria-label="Island Details Panel">
+  <!-- Island Content Side Drawer -->
+  <aside class="island-drawer" id="island-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-unit-title">
     <div class="drawer-header">
-      <div class="drawer-title-group">
-        <div class="drawer-island-badge" id="d-badge">A</div>
-        <div>
-          <div class="drawer-title" id="d-title">Island A: Unit 1</div>
-          <div class="drawer-subtitle" id="d-subtitle">Getting Started with Perceptual AI</div>
-        </div>
+      <div>
+        <div class="drawer-meta-pill" id="drawer-unit-badge">Island A &bull; Unit 1</div>
+        <h2 class="drawer-title" id="drawer-unit-title">Unit Title</h2>
       </div>
-      <button class="close-btn" onclick="closeIslandDrawer()" aria-label="Close island details panel">✕</button>
+      <button class="drawer-close-btn" id="btn-drawer-close" aria-label="Close island details (Esc)">✕</button>
     </div>
 
-    <div class="drawer-body">
-      <!-- Unit Introduction -->
-      <div>
-        <div class="section-heading">📖 Unit Introduction</div>
-        <div class="unit-intro" id="d-intro">Unit introduction text.</div>
-      </div>
+    <div class="drawer-scroll">
+      <!-- 2-3 sentence introduction -->
+      <p class="drawer-intro" id="drawer-intro-text"></p>
 
       <!-- Unit Lessons List -->
-      <div>
-        <div class="section-heading">📚 Course Lessons</div>
-        <div class="lesson-list" id="d-lessons">
-          <!-- Injected via JavaScript -->
-        </div>
-      </div>
+      <section>
+        <h3 class="section-title">Unit Curriculum</h3>
+        <ul class="lessons-list" id="drawer-lessons-list"></ul>
+      </section>
 
-      <!-- Interactive Unit Activity -->
-      <div>
-        <div class="section-heading">🎯 Hands-On Activity</div>
-        <div class="activity-box" id="d-activity">
-          <!-- Injected via JavaScript -->
+      <!-- Interactive Activity Container -->
+      <section>
+        <h3 class="section-title">Hands-On Activity</h3>
+        <div class="activity-container" id="drawer-activity-box">
+          <!-- Dynamic Activity Elements Injected Here -->
         </div>
+      </section>
+    </div>
+
+    <div class="drawer-footer">
+      <button class="btn-overview" id="btn-drawer-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span>Back to overview</span>
+      </button>
+      <div class="drawer-nav-group">
+        <button class="drawer-nav-btn" id="btn-prev-island" aria-label="Previous Island">&larr; Prev</button>
+        <button class="drawer-nav-btn" id="btn-next-island" aria-label="Next Island">Next &rarr;</button>
       </div>
     </div>
   </aside>
 
-  <!-- Accessible Text-Only Course Outline Modal -->
-  <div id="accessible-list-modal" role="dialog" aria-modal="true" aria-label="Course Curriculum List">
-    <div class="accessible-card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-size: 1.25rem; font-weight: 800;">Course Curriculum: Pforzheim AI Course</h2>
-        <button class="close-btn" onclick="closeAccessibleModal()" aria-label="Close curriculum outline">✕</button>
+  <!-- Accessible "Course Index" Modal (Screen-reader & Keyboard friendly) -->
+  <div class="accessible-modal" id="accessible-modal" role="dialog" aria-modal="true" aria-labelledby="modal-index-title">
+    <div class="accessible-dialog">
+      <div class="accessible-header">
+        <h2 id="modal-index-title" style="font-size:1.15rem; font-weight:800;">Course Units Navigation</h2>
+        <button class="drawer-close-btn" id="btn-close-modal" aria-label="Close Course Index">✕</button>
       </div>
-      <p style="font-size: 0.86rem; color: var(--text-muted);">
-        A structured, text-accessible overview of all six course islands and units. Select any island to open its interactive activities and full details.
-      </p>
-
-      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;" id="accessible-items-list">
-        <!-- Rendered dynamically -->
+      <div class="accessible-body" id="accessible-islands-list">
+        <!-- Injected list of Island buttons -->
       </div>
     </div>
   </div>
 
+  <!-- WebGL Fallback Notification -->
+  <div class="webgl-fallback" id="webgl-fallback">
+    <h3 style="font-size:1.2rem; margin-bottom:10px;">3D Canvas Unavailable</h3>
+    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:18px;">
+      Your browser or hardware has WebGL disabled. You can still access the complete interactive course curriculum below:
+    </p>
+    <button class="tool-btn active" id="btn-fallback-open" style="padding:10px 20px; font-size:0.95rem;">Open Course Index</button>
+  </div>
+
+  <!-- ==========================================================================
+       Application Script (Course Data, 3D Engine, Audio, Interactions)
+       ========================================================================== -->
   <script>
-    /* =========================================================================
-       1. COURSE CURRICULUM DATA MODEL
-       ========================================================================= */
+    /* ==========================================================================
+       1. COURSE DATA SPECIFICATION
+       ========================================================================== */
     const COURSE_ISLANDS = [
       {
-        id: "A",
-        unitNum: "Unit 1",
-        title: "Getting Started with Perceptual AI",
-        tagline: "Vision foundations & custom model training",
-        colorHex: 0xfb7185, // Rose pastel
-        accentCss: "#f43f5e",
-        intro: "Welcome to your first steps in applied AI! In this opening unit, you build your personal home on the web and discover Google MediaPipe Tasks—lightweight, on-device machine learning models designed to understand photos and videos. You will also train and test your own recognition model directly in the browser with Teachable Machine.",
+        id: 'A',
+        unit: 'Unit 1',
+        title: 'Getting Started with Perceptual AI',
+        color: 0xffa07a, // Soft Salmon/Coral
+        landmarkType: 'camera_tower',
+        intro: 'Welcome to Unit 1! Here we embark on our perceptual AI journey by setting up your personal showcase website and exploring how computers begin to perceive the physical world. You will train custom vision models with Google Teachable Machine and experiment with object recognition using Google Antigravity.',
         lessons: [
-          { num: "1.1", title: "Build your own personal web page and course introduction", desc: "Create your personal course portfolio web page and learn the essential roadmap of AI tools." },
-          { num: "1.2", title: "Introduction to Google MediaPipe Tasks (perceptual AI)", desc: "Understand how modern edge-AI perceptual models perceive sight, sound, and movement." },
-          { num: "1.3", title: "Train your own recognition model with Teachable Machine", desc: "Collect custom training samples with your webcam and train a live classification model in minutes." },
-          { num: "1.4", title: "Image object recognition with Google Antigravity", desc: "Run state-of-the-art vision models on still photographs to locate and identify multiple objects." },
-          { num: "1.5", title: "Video object recognition with Google Antigravity", desc: "Apply detection models to continuous video streams and analyze objects across frames." }
+          { code: '1.1', title: 'Build your own personal web page and course introduction', desc: 'Craft a clean web profile to document your AI experiments and coursework.' },
+          { code: '1.2', title: 'Introduction to Google MediaPipe Tasks (perceptual AI)', desc: 'Discover fast, on-device vision pipelines for recognizing sights and movements.' },
+          { code: '1.3', title: 'Train your own recognition model with Teachable Machine', desc: 'Capture webcam samples and train an image classifier right in your browser.' },
+          { code: '1.4', title: 'Image object recognition with Google Antigravity', desc: 'Detect multiple everyday objects inside static photos with bounding boxes.' },
+          { code: '1.5', title: 'Video object recognition with Google Antigravity', desc: 'Process live video streams to track dynamic objects with high accuracy.' }
         ],
-        activityType: "match",
-        activity: {
-          title: "Tool to Task Matching",
-          instruction: "Match each practical AI scenario with the ideal tool from Unit 1:",
-          pairs: [
-            { task: "Quick custom model for my own gesture", tool: "Teachable Machine" },
-            { task: "On-device, cross-platform perceptual vision", tool: "Google MediaPipe" },
-            { task: "Automated multi-object bounding boxes", tool: "Antigravity Object Detection" }
-          ]
-        }
+        activityType: 'matching'
       },
       {
-        id: "B",
-        unitNum: "Unit 2",
-        title: "MediaPipe Vision Tasks",
-        tagline: "Landmarks, gestures & human segmentation",
-        colorHex: 0xa855f7, // Lavender / Purple pastel
-        accentCss: "#a855f7",
-        intro: "Dive deep into specialized vision intelligence! In Unit 2, we explore how MediaPipe tracks 468 3D facial landmarks, whole-body skeletal poses, and hand gestures in real time. We also cover background selfie segmentation—the core computer vision algorithm behind video conferencing background blur.",
+        id: 'B',
+        unit: 'Unit 2',
+        title: 'MediaPipe Vision Tasks',
+        color: 0x72c4ce, // Soft Seafoam / Sky
+        landmarkType: 'face_hill',
+        intro: 'In Unit 2, we dive deeper into Google MediaPipe vision models running directly in real time. We explore detailed facial landmarks, human pose coordinates, gesture recognition, and background segmentation for creative interfaces.',
         lessons: [
-          { num: "2.1", title: "MediaPipe Face Landmark Detection", desc: "Map 468 precise 3D keypoints across eyes, lips, and facial geometry from a camera feed." },
-          { num: "2.2", title: "MediaPipe Video Face Landmark Detection", desc: "Track facial expressions and mesh transformations smoothly across continuous video frames." },
-          { num: "2.3", title: "MediaPipe Pose Landmark Detection", desc: "Track 33 anatomical body joints to measure movements, rep counts, and exercise posture." },
-          { num: "2.4", title: "MediaPipe Gesture Recognition", desc: "Recognize discrete and continuous hand signs (thumbs up, open palm, pointing) in real time." },
-          { num: "2.5", title: "MediaPipe Image Segmentation", desc: "Separate people from backgrounds with pixel-perfect alpha masking for virtual backdrops." },
-          { num: "2.6", title: "MediaPipe Face Detection", desc: "Rapidly detect face bounding boxes and six basic anatomical keypoints with sub-millisecond speed." }
+          { code: '2.1', title: 'MediaPipe Face Landmark Detection', desc: 'Map 468+ high-density 3D geometric facial mesh coordinates from photos.' },
+          { code: '2.2', title: 'MediaPipe Video Face Landmark Detection', desc: 'Track facial expression micro-movements smoothly in live webcam streams.' },
+          { code: '2.3', title: 'MediaPipe Pose Landmark Detection', desc: 'Track 33 key body skeletal points to analyze fitness posture and movement.' },
+          { code: '2.4', title: 'MediaPipe Gesture Recognition', desc: 'Identify hand signs like thumbs up, victory, and open palm in real time.' },
+          { code: '2.5', title: 'MediaPipe Image Segmentation', desc: 'Separate foreground human subjects from background pixels for virtual effects.' },
+          { code: '2.6', title: 'MediaPipe Face Detection', desc: 'Quickly locate all human faces and key focal boundaries across video frames.' }
         ],
-        activityType: "quiz",
-        activity: {
-          title: "Which Task Would You Use?",
-          scenario: "You are building an AI fitness app that counts squats and verifies that the athlete's knees bend at a 90-degree angle. Which MediaPipe task is best?",
-          options: [
-            { text: "MediaPipe Image Segmentation", correct: false, feedback: "Segmentation isolates pixels for backgrounds, but doesn't calculate skeletal joint angles." },
-            { text: "MediaPipe Pose Landmark Detection", correct: true, feedback: "Spot on! Pose Detection tracks hip, knee, and ankle 3D coordinates to calculate body angles." },
-            { text: "MediaPipe Face Detection", correct: false, feedback: "Face Detection only finds the head, not leg joints." }
-          ]
-        }
+        activityType: 'scenario_quiz'
       },
       {
-        id: "C",
-        unitNum: "Unit 3",
-        title: "Real-Time Models and Creative AI",
-        tagline: "YOLO, style transfer & interactive web apps",
-        colorHex: 0x14b8a6, // Teal pastel
-        accentCss: "#0d9488",
-        intro: "Step into the intersection of computer vision, generative art, and real-time inference. Learn how Ultralytics YOLO detects 80 object classes at 60+ FPS, how Neural Style Transfer re-imagines photos through historical art movements, and how to connect Gemini API keys to build conversational interfaces.",
+        id: 'C',
+        unit: 'Unit 3',
+        title: 'Real-Time Models and Creative AI',
+        color: 0xf6bd60, // Warm Buttercream
+        landmarkType: 'creative_easel',
+        intro: 'Unit 3 bridges fast real-time object detection with generative and creative workflows. From YOLO bounding boxes to artistic neural style transfer and conversational bots, you will build responsive AI pipelines and design your own 3D Island Builder. 🌸 Look closely at Island C—there is a cute mini version of me staying right here with you in the Creative Studio, waving hello and ready to build! ✨',
         lessons: [
-          { num: "3.1", title: "Teachable Machine Real-Time Object Classifier", desc: "Deploy trained classifier weights into responsive, browser-based JavaScript applications." },
-          { num: "3.2", title: "YOLO", desc: "Leverage You Only Look Once (YOLO) architectures for high-speed multi-class object detection." },
-          { num: "3.3", title: "Neural Style Transfer", desc: "Synthesize iconic artistic textures (Van Gogh, Hokusai) with everyday photos using deep neural nets." },
-          { num: "3.4", title: "Simple Chat App Built with a Gemini API Key", desc: "Create an interactive conversational UI using Google AI Studio API credentials." },
-          { num: "3.5", title: "Island Builder", desc: "Combine 3D web graphics and creative AI pipelines into immersive interactive environments." }
+          { code: '3.1', title: 'Teachable Machine Real-Time Object Classifier', desc: 'Run browser-based inference at 60 FPS for instantaneous object sorting.' },
+          { code: '3.2', title: 'YOLO', desc: 'Leverage You Only Look Once architectures for ultra-fast multi-class detection.' },
+          { code: '3.3', title: 'Neural Style Transfer', desc: 'Blend the aesthetic style of famous artworks into standard photography.' },
+          { code: '3.4', title: 'Simple Chat App Built with a Gemini API Key', desc: 'Connect frontend interfaces directly to Gemini language intelligence.' },
+          { code: '3.5', title: 'Island Builder', desc: 'Assemble 3D interactive virtual worlds powered by programmatic design.' }
         ],
-        activityType: "pipeline",
-        activity: {
-          title: "Order the Vision AI Pipeline",
-          instruction: "Select the correct sequential order of a real-time computer vision pipeline:",
-          steps: [
-            { label: "Capture frame & normalize dimensions", correctOrder: 1 },
-            { label: "Neural network forward pass (inference)", correctOrder: 2 },
-            { label: "Filter thresholds & draw bounding boxes on canvas", correctOrder: 3 }
-          ]
-        }
+        activityType: 'pipeline_sort'
       },
       {
-        id: "D",
-        unitNum: "Unit 4",
-        title: "Gemini and Multimodal Workflows",
-        tagline: "Multimodal reasoning, Canvas & automated skills",
-        colorHex: 0x38bdf8, // Sky Blue pastel
-        accentCss: "#0284c7",
-        intro: "Multimodal AI breaks down the barrier between text, code, and images. In Unit 4, we examine local multimodal inference with Ollama and explore the Gemini ecosystem: interactive Canvas artifacts, Notebook research workflows, and custom skill scripts that automate complex multi-step reasoning.",
+        id: 'D',
+        unit: 'Unit 4',
+        title: 'Gemini and Multimodal Workflows',
+        color: 0xb388eb, // Soft Violet
+        landmarkType: 'gemini_spire',
+        intro: 'Unit 4 harnesses multimodal foundation models that understand text, images, code, and audio simultaneously. You will integrate Ollama for local vision inference and master Gemini Notebooks, Canvas, and advanced Skills for complex problem solving.',
         lessons: [
-          { num: "4.1", title: "Use a multimodal model to let Ollama recognize images", desc: "Run private, offline multimodal vision models locally on your computer with Ollama." },
-          { num: "4.2", title: "Gemini", desc: "Master core prompt engineering, system instructions, and multimodal context windows with Gemini." },
-          { num: "4.3", title: "Gemini Notebook", desc: "Synthesize research papers, lecture notes, and source documents into grounded study guides." },
-          { num: "4.4", title: "Gemini Canvas", desc: "Collaborate side-by-side with AI on documents, web apps, and live interactive visual artifacts." },
-          { num: "4.5", title: "Gemini Skills-1", desc: "Create modular instructions and reusable operational workflows for repeated cognitive tasks." },
-          { num: "4.6", title: "Gemini Skills-2", desc: "Integrate programmatic tool calls and structured outputs into advanced agent skills." },
-          { num: "4.7", title: "Gemini Skills-3", desc: "Chain multi-skill pipelines to solve end-to-end business and engineering workflows." }
+          { code: '4.1', title: 'Use a multimodal model to let Ollama recognize images', desc: 'Run open-weight multimodal models locally on your machine with Ollama.' },
+          { code: '4.2', title: 'Gemini', desc: 'Understand foundation multimodal reasoning across textual and visual prompts.' },
+          { code: '4.3', title: 'Gemini Notebook', desc: 'Synthesize research sources and citations within an intelligent notebook.' },
+          { code: '4.4', title: 'Gemini Canvas', desc: 'Collaborate visually on dynamic drafts, code blocks, and layout concepts.' },
+          { code: '4.5', title: 'Gemini Skills-1', desc: 'Equip Gemini with structured foundational tools and specialized routines.' },
+          { code: '4.6', title: 'Gemini Skills-2', desc: 'Chain multimodal queries with custom external functional logic.' },
+          { code: '4.7', title: 'Gemini Skills-3', desc: 'Build autonomous multistep workflows with custom skill configurations.' }
         ],
-        activityType: "designer",
-        activity: {
-          title: "Design Your Multimodal Helper",
-          instruction: "Pick your workflow goal and check the Gemini features you would combine:",
-          goals: ["Summarize lecture slides with diagrams", "Code a web app prototype", "Automate weekly study notes"],
-          components: [
-            "Gemini Canvas (Interactive visual UI)",
-            "Gemini Notebook (Document grounding)",
-            "Multimodal Vision (Diagram & photo reading)",
-            "Custom Skill (Automated pipeline)"
-          ]
-        }
+        activityType: 'helper_designer'
       },
       {
-        id: "E",
-        unitNum: "Unit 5",
-        title: "AI Agents",
-        tagline: "Autonomous multi-agent systems & integrations",
-        colorHex: 0xf59e0b, // Amber / Honey pastel
-        accentCss: "#d97706",
-        intro: "Moving from simple prompts to autonomous agency! Unit 5 demystifies autonomous AI agents that can browse, execute code, call APIs, and coordinate with peer agents. We survey automation tools like n8n, ChatGPT multi-agent systems, and open-source autonomous agent architectures.",
+        id: 'E',
+        unit: 'Unit 5',
+        title: 'AI Agents',
+        color: 0x80ced7, // Pastel Mint / Turquoise
+        landmarkType: 'agent_tower',
+        intro: 'Step beyond single-turn chatbots into autonomous agents! In Unit 5, you learn how AI systems reason, plan multi-step tasks, coordinate with peer agents, and execute external tools via n8n, ChatGPT Skills/Plugins, Claude Skills, and open agent harnesses.',
         lessons: [
-          { num: "5.1", title: "n8n", desc: "Build visual node-based automation workflows integrating LLMs, webhooks, and databases." },
-          { num: "5.2", title: "ChatGPT multi-agent", desc: "Configure teams of specialized agents with distinct roles collaborating toward a shared objective." },
-          { num: "5.3", title: "ChatGPT Skills", desc: "Equip language agents with custom capabilities, external calculators, and task recipes." },
-          { num: "5.4", title: "ChatGPT Plugins - canva", desc: "Connect language models directly to design tools for automated visual content creation." },
-          { num: "5.5", title: "ChatGPT Sites", desc: "Deploy interactive agent-powered web endpoints and interactive assistants to the web." },
-          { num: "5.6", title: "Claude Skills", desc: "Harness long-context autonomous problem-solving and structured tool-use patterns." },
-          { num: "5.7", title: "OpenClaw", desc: "Explore open-source autonomous web-crawling and information gathering agent stacks." },
-          { num: "5.8", title: "Hermes Agent", desc: "Study local and private agent orchestration frameworks for offline decision making." }
+          { code: '5.1', title: 'n8n', desc: 'Automate node-based agent orchestration workflows and external service integrations.' },
+          { code: '5.2', title: 'ChatGPT multi-agent', desc: 'Coordinate specialized agent roles collaborating together to solve complex tasks.' },
+          { code: '5.3', title: 'ChatGPT Skills', desc: 'Configure custom domain instructions and behavioral guidelines for tasks.' },
+          { code: '5.4', title: 'ChatGPT Plugins - canva', desc: 'Generate and modify visual design documents directly through conversational prompts.' },
+          { code: '5.5', title: 'ChatGPT Sites', desc: 'Deploy agent-driven web spaces and interactive conversational portals.' },
+          { code: '5.6', title: 'Claude Skills', desc: 'Leverage Claude structured tool-use protocols for precise analysis.' },
+          { code: '5.7', title: 'OpenClaw', desc: 'Explore open agent execution environments for sandboxed script execution.' },
+          { code: '5.8', title: 'Hermes Agent', desc: 'Inspect lightweight open-source agent frameworks with function calling.' }
         ],
-        activityType: "agent_sort",
-        activity: {
-          title: "Agent vs. Chatbot Sorting",
-          instruction: "Classify each scenario: is it handled by a reactive Chatbot or an autonomous Agent?",
-          items: [
-            { text: "Answer 'What is the capital of Germany?' immediately", answer: "Chatbot" },
-            { text: "Monitor flight prices daily and book automatically when below $300", answer: "Agent" },
-            { text: "Research 5 competitor websites, generate a comparison sheet, and email the team", answer: "Agent" }
-          ]
-        }
+        activityType: 'agent_sorting'
       },
       {
-        id: "F",
-        unitNum: "Unit 6",
-        title: "The Next Wave of AI Tools",
-        tagline: "Emerging interfaces, creative labs & horizons",
-        colorHex: 0x6366f1, // Indigo pastel
-        accentCss: "#4f46e5",
-        intro: "Explore the cutting edge! The AI tooling landscape evolves weekly with new interaction paradigms, voice agents, and creative co-pilots. In this unit, we neutrally survey emerging releases and evaluate how to evaluate, test, and adopt new tools safely as forward-thinking students.",
+        id: 'F',
+        unit: 'Unit 6',
+        title: 'The Next Wave of AI Tools',
+        color: 0xf4a6c8, // Soft Rose / Blush
+        landmarkType: 'observatory_dome',
+        intro: 'Unit 6 surveys emerging experimental frontiers and next-generation AI platforms. Explore newly announced assistive creators, generative copilots, and multi-modal assistants as we analyze how human-AI workflows continue to evolve.',
         lessons: [
-          { num: "6.1", title: "Meta Muse", desc: "Explore creative multimodal ideation, storytelling, and studio design workflows in class." },
-          { num: "6.2", title: "Manus Cue!", desc: "Examine emerging interface cues, prompt automation, and workflow accelerators." },
-          { num: "6.3", title: "Hark Pro", desc: "Investigate advanced audio analysis, transcription, and speech interaction tools." },
-          { num: "6.4", title: "OpenAI Dots", desc: "Evaluate novel interface concepts and modular components in contemporary AI suites." },
-          { num: "6.5", title: "Grok Bot", desc: "Analyze real-time information processing and web-integrated conversational models." },
-          { num: "6.6", title: "Claude Duet", desc: "Explore collaborative dual-agent pairing and real-time coding co-pilot techniques." }
+          { code: '6.1', title: 'Meta Muse', desc: 'Explore generative creative design and multimodal ideation in class.' },
+          { code: '6.2', title: 'Manus Cue!', desc: 'Explore next-generation workflow prompting and creative cues in class.' },
+          { code: '6.3', title: 'Hark Pro', desc: 'Explore advanced audio and vocal interaction capabilities in class.' },
+          { code: '6.4', title: 'OpenAI Dots', desc: 'Explore experimental micro-agent nodes and lightweight tools in class.' },
+          { code: '6.5', title: 'Grok Bot', desc: 'Explore real-time conversational analysis and open exploration in class.' },
+          { code: '6.6', title: 'Claude Duet', desc: 'Explore paired reasoning and collaborative side-by-side problem solving in class.' }
         ],
-        activityType: "explorer",
-        activity: {
-          title: "Tool Explorer Card",
-          instruction: "Select two emerging tools to compare in class and reflect on what you would test first:",
-          tools: ["Meta Muse", "Manus Cue!", "Hark Pro", "OpenAI Dots", "Grok Bot", "Claude Duet"]
-        }
+        activityType: 'tool_explorer'
       }
     ];
 
-    /* =========================================================================
-       2. THREE.JS 3D SCENE & CUTE LOW-POLY ISLAND BUILDER
-       ========================================================================= */
+    /* ==========================================================================
+       2. THREE.JS 3D SCENE & ENGINE
+       ========================================================================== */
     let scene, camera, renderer, controls;
     let islandMeshes = [];
-    let islandGroup;
-    let labelElements = [];
-    let cloudGroup;
-    let selectedIsland = null;
-    let isLowStim = false;
-    let isBobbing = true;
+    let cloudGroup, starsGroup;
+    let petalsGroup, butterfliesGroup;
+    let raycaster, mouse;
+    let activeIslandIndex = null;
+    let hoveredIslandIndex = null;
+    let isFlyAnimating = false;
+    let flyStartPos = new THREE.Vector3();
+    let flyTargetPos = new THREE.Vector3();
+    let flyStartLook = new THREE.Vector3();
+    let flyTargetLook = new THREE.Vector3();
+    let flyProgress = 1;
+    let flyDuration = 1200; // ms
+    let flyStartTime = 0;
 
-    // Camera animation state
-    let isAnimatingCamera = false;
-    let camTargetPos = new THREE.Vector3(0, 24, 46);
-    let camLookTarget = new THREE.Vector3(0, 0, 0);
-
-    const OVERVIEW_CAM_POS = new THREE.Vector3(0, 24, 46);
+    const OVERVIEW_CAM_POS = new THREE.Vector3(0, 32, 48);
     const OVERVIEW_LOOK_TARGET = new THREE.Vector3(0, 0, 0);
 
-    function init3D() {
-      const container = document.getElementById("canvas-container");
-      
+    let lowStimulation = false;
+    let clock = new THREE.Clock();
+
+    function init3DScene() {
+      const container = document.getElementById('canvas-container');
+
       // Check WebGL availability
-      try {
-        const testCanvas = document.createElement("canvas");
-        const gl = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
-        if (!gl) throw new Error("WebGL not supported");
-      } catch (err) {
-        document.getElementById("webgl-fallback").style.display = "flex";
+      if (!window.WebGLRenderingContext) {
+        showWebGLFallback();
         return;
       }
 
       // 1. Scene
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xdbeafe);
+      scene.fog = new THREE.FogExp2(0xffd5e0, 0.011);
 
       // 2. Camera
-      camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.5, 300);
+      const aspect = window.innerWidth / window.innerHeight;
+      camera = new THREE.PerspectiveCamera(45, aspect, 0.5, 300);
       camera.position.copy(OVERVIEW_CAM_POS);
 
-      // 3. Renderer (capped pixel ratio for smooth performance)
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+      // 3. Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
       container.appendChild(renderer.domElement);
 
-      // 4. OrbitControls with smooth damping and bounded zoom
+      // 4. Controls
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.06;
-      controls.minDistance = 16;
-      controls.maxDistance = 70;
-      controls.maxPolarAngle = Math.PI / 2.15; // prevent going below sea level
+      controls.minDistance = 14;
+      controls.maxDistance = 75;
+      controls.maxPolarAngle = Math.PI / 2.05; // Prevent dipping beneath ground horizon
+      controls.minPolarAngle = Math.PI / 8;
       controls.target.copy(OVERVIEW_LOOK_TARGET);
 
-      // 5. Lighting (soft, warm, pastel illumination)
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      // 5. Lighting: Soft pastel sun and gentle ambient sky
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
       scene.add(ambientLight);
 
-      const hemiLight = new THREE.HemisphereLight(0xfff7ed, 0x93c5fd, 0.4);
-      hemiLight.position.set(0, 50, 0);
+      const hemiLight = new THREE.HemisphereLight(0xfff6ea, 0xccd9ea, 0.5);
       scene.add(hemiLight);
 
-      const sunLight = new THREE.DirectionalLight(0xfffaed, 0.8);
-      sunLight.position.set(30, 45, 25);
-      sunLight.castShadow = true;
-      sunLight.shadow.mapSize.width = 1024;
-      sunLight.shadow.mapSize.height = 1024;
-      sunLight.shadow.camera.near = 10;
-      sunLight.shadow.camera.far = 100;
-      const d = 35;
-      sunLight.shadow.camera.left = -d;
-      sunLight.shadow.camera.right = d;
-      sunLight.shadow.camera.top = d;
-      sunLight.shadow.camera.bottom = -d;
-      scene.add(sunLight);
+      const dirLight = new THREE.DirectionalLight(0xfff8ee, 0.9);
+      dirLight.position.set(30, 45, 25);
+      scene.add(dirLight);
 
-      // 6. Build the 6 Islands
-      islandGroup = new THREE.Group();
-      scene.add(islandGroup);
+      // Gentle secondary fill light
+      const fillLight = new THREE.DirectionalLight(0xd9e5ff, 0.4);
+      fillLight.position.set(-25, 20, -25);
+      scene.add(fillLight);
 
-      const ringRadius = 20;
-      const count = COURSE_ISLANDS.length;
+      // 6. Raycasting Setup
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
 
-      COURSE_ISLANDS.forEach((data, index) => {
-        const angle = (index / count) * Math.PI * 2;
-        const x = Math.cos(angle) * ringRadius;
-        const z = Math.sin(angle) * ringRadius;
-
-        const island = createCuteIsland(data, x, z);
-        islandGroup.add(island);
-        islandMeshes.push(island);
-
-        // Create HTML floating label
-        createIslandHtmlLabel(data, island);
-      });
-
-      // 7. Ambient Soft Drifting Clouds
-      createAmbientClouds();
+      // 7. Build Environment Elements
+      buildConstellationIslands();
+      buildGentleClouds();
+      buildAmbientStarfield();
+      buildFloatingPetals();
+      buildButterflies();
 
       // 8. Event Listeners
-      window.addEventListener("resize", onWindowResize);
-      renderer.domElement.addEventListener("pointerdown", onPointerDown);
-      renderer.domElement.addEventListener("click", onSceneClick);
+      window.addEventListener('resize', onWindowResize, false);
+      container.addEventListener('pointermove', onPointerMove, false);
+      container.addEventListener('pointerdown', onPointerDown, false);
+      container.addEventListener('click', onCanvasClick, false);
 
-      // Check OS reduced-motion preference
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (prefersReducedMotion) {
-        enableLowStimMode(true);
-      }
+      // Keyboard navigation support
+      window.addEventListener('keydown', onKeyDown, false);
 
-      // Populate accessible list modal
-      populateAccessibleList();
-
-      // Start loop
+      // Render Loop
       animate();
     }
 
-    /* Helper: Create a cute planet-like rounded low-poly island with distinct landmark */
-    function createCuteIsland(data, x, z) {
-      const group = new THREE.Group();
-      group.position.set(x, 0, z);
-      group.userData = {
-        islandData: data,
-        baseY: 0,
-        bobPhase: Math.random() * Math.PI * 2,
-        bobSpeed: 0.8 + Math.random() * 0.4
-      };
+    /* --------------------------------------------------------------------------
+       Build 6 Cute Low-Poly Floating Islands with Thematic Landmarks
+       -------------------------------------------------------------------------- */
+    function buildConstellationIslands() {
+      const ringRadius = 24;
+      const count = COURSE_ISLANDS.length;
 
-      // Island base (rocky bottom + soft pastel grass cap)
-      const baseRadius = 3.6;
-      
-      // Bottom cone / dome (earth rock)
-      const rockGeo = new THREE.CylinderGeometry(baseRadius, 0.4, 3.2, 10, 1);
-      const rockMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8, flatShading: true });
-      const rockMesh = new THREE.Mesh(rockGeo, rockMat);
-      rockMesh.position.y = -1.6;
-      rockMesh.castShadow = true;
-      rockMesh.receiveShadow = true;
-      group.add(rockMesh);
+      COURSE_ISLANDS.forEach((island, i) => {
+        const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+        const x = Math.cos(angle) * ringRadius;
+        const z = Math.sin(angle) * ringRadius;
+        const yOffset = (i % 2 === 0 ? 0.8 : -0.8);
 
-      // Top grass mound (rounded pastel squashed sphere)
-      const moundGeo = new THREE.SphereGeometry(baseRadius, 14, 10);
-      moundGeo.scale(1, 0.45, 1);
-      const moundMat = new THREE.MeshLambertMaterial({
-        color: data.colorHex,
-        flatShading: true
-      });
-      const moundMesh = new THREE.Mesh(moundGeo, moundMat);
-      moundMesh.position.y = 0.2;
-      moundMesh.castShadow = true;
-      moundMesh.receiveShadow = true;
-      group.add(moundMesh);
+        const islandRoot = new THREE.Group();
+        islandRoot.position.set(x, yOffset, z);
+        islandRoot.userData = { index: i, id: island.id, title: island.title, basePos: new THREE.Vector3(x, yOffset, z) };
 
-      // Soft glow ring / highlight disc on island top
-      const ringGeo = new THREE.RingGeometry(baseRadius * 0.9, baseRadius * 1.05, 24);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.35
-      });
-      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-      ringMesh.rotation.x = Math.PI / 2;
-      ringMesh.position.y = 0.3;
-      group.add(ringMesh);
+        // 1. Island Top Platter (Grassy rounded disk)
+        const platterGeo = new THREE.CylinderGeometry(4.3, 4.6, 1.4, 32);
+        const platterMat = new THREE.MeshLambertMaterial({
+          color: island.color,
+          roughness: 0.8
+        });
+        const platter = new THREE.Mesh(platterGeo, platterMat);
+        platter.position.y = 0.7;
+        islandRoot.add(platter);
 
-      // Cute small low-poly trees / stones on edges
-      for (let i = 0; i < 3; i++) {
-        const treeAngle = (i / 3) * Math.PI * 2 + 0.3;
-        const dist = baseRadius * 0.65;
-        const tx = Math.cos(treeAngle) * dist;
-        const tz = Math.sin(treeAngle) * dist;
+        // 2. Island Earthen Underbelly (Soft pastel rock bottom)
+        const rockGeo = new THREE.ConeGeometry(4.6, 3.8, 16);
+        const rockMat = new THREE.MeshLambertMaterial({
+          color: 0xead9cb,
+          flatShading: true
+        });
+        const rock = new THREE.Mesh(rockGeo, rockMat);
+        rock.rotation.x = Math.PI;
+        rock.position.y = -1.9;
+        islandRoot.add(rock);
 
-        // Tree trunk
-        const trunkGeo = new THREE.CylinderGeometry(0.12, 0.15, 0.6, 5);
-        const trunkMat = new THREE.MeshLambertMaterial({ color: 0x78716c });
-        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-        trunk.position.set(tx, 0.5, tz);
-        group.add(trunk);
+        // 3. Glowing Selection / Focus Ring (visible on hover or focus)
+        const ringGeo = new THREE.TorusGeometry(4.9, 0.12, 12, 36);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = 1.42;
+        ring.name = "glowRing";
+        islandRoot.add(ring);
 
-        // Tree foliage (low-poly cone)
-        const foliageGeo = new THREE.ConeGeometry(0.55, 1.1, 6);
-        const foliageMat = new THREE.MeshLambertMaterial({ color: 0x86efac, flatShading: true });
-        const foliage = new THREE.Mesh(foliageGeo, foliageMat);
-        foliage.position.set(tx, 1.1, tz);
-        foliage.castShadow = true;
-        group.add(foliage);
-      }
+        // 4. Tiny Decorative Trees / Shrubs around perimeter
+        for (let t = 0; t < 5; t++) {
+          const treeAngle = (t / 5) * Math.PI * 2 + (i * 0.4);
+          const trX = Math.cos(treeAngle) * 3.3;
+          const trZ = Math.sin(treeAngle) * 3.3;
 
-      // DISTINCT LANDMARKS PER ISLAND THEME
-      const landmarkGroup = new THREE.Group();
-      landmarkGroup.position.set(0, 0.3, 0);
+          const trunkGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.5, 6);
+          const trunkMat = new THREE.MeshLambertMaterial({ color: 0x9c7a65 });
+          const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+          trunk.position.set(trX, 1.6, trZ);
 
-      switch (data.id) {
-        case "A": // Perceptual AI: Camera tower with perception dome & lens
-          {
-            const towerGeo = new THREE.CylinderGeometry(0.65, 0.85, 2.2, 7);
-            const towerMat = new THREE.MeshLambertMaterial({ color: 0xffedd5, flatShading: true });
-            const tower = new THREE.Mesh(towerGeo, towerMat);
-            tower.position.y = 1.1;
-            landmarkGroup.add(tower);
+          const foliageGeo = new THREE.DodecahedronGeometry(0.38 + (t % 3) * 0.08);
+          const foliageMat = new THREE.MeshLambertMaterial({ color: (t % 2 === 0 ? 0x95d5b2 : 0x74c69d), flatShading: true });
+          const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+          foliage.position.set(trX, 2.05, trZ);
 
-            // Lens ring
-            const lensGeo = new THREE.TorusGeometry(0.5, 0.14, 8, 12);
-            const lensMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
-            const lens = new THREE.Mesh(lensGeo, lensMat);
-            lens.position.set(0, 1.5, 0.55);
-            landmarkGroup.add(lens);
-
-            // Glass perception dome
-            const domeGeo = new THREE.SphereGeometry(0.5, 8, 8);
-            const domeMat = new THREE.MeshLambertMaterial({ color: 0x38bdf8 });
-            const dome = new THREE.Mesh(domeGeo, domeMat);
-            dome.position.set(0, 2.2, 0);
-            landmarkGroup.add(dome);
-          }
-          break;
-
-        case "B": // MediaPipe Vision: Expressive geometric Face Hill / sculpture
-          {
-            // Face hill
-            const faceGeo = new THREE.DodecahedronGeometry(1.2, 0);
-            const faceMat = new THREE.MeshLambertMaterial({ color: 0xe9d5ff, flatShading: true });
-            const faceMesh = new THREE.Mesh(faceGeo, faceMat);
-            faceMesh.position.y = 1.2;
-            faceMesh.scale.set(0.9, 1.3, 0.9);
-            landmarkGroup.add(faceMesh);
-
-            // Geometric eyes
-            [-0.35, 0.35].forEach(ox => {
-              const eyeGeo = new THREE.TorusGeometry(0.18, 0.05, 6, 8);
-              const eyeMat = new THREE.MeshBasicMaterial({ color: 0x6b21a8 });
-              const eye = new THREE.Mesh(eyeGeo, eyeMat);
-              eye.position.set(ox, 1.45, 0.85);
-              landmarkGroup.add(eye);
-            });
-
-            // Geometric nose
-            const noseGeo = new THREE.ConeGeometry(0.15, 0.4, 4);
-            const noseMat = new THREE.MeshLambertMaterial({ color: 0xc084fc });
-            const nose = new THREE.Mesh(noseGeo, noseMat);
-            nose.position.set(0, 1.2, 0.95);
-            nose.rotation.x = Math.PI / 2.8;
-            landmarkGroup.add(nose);
-          }
-          break;
-
-        case "C": // Real-Time & Creative AI: Artist easel, generative crystal, mini terminal
-          {
-            // Artist easel / canvas board
-            const boardGeo = new THREE.BoxGeometry(1.6, 1.2, 0.15);
-            const boardMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-            const board = new THREE.Mesh(boardGeo, boardMat);
-            board.position.set(0, 1.4, -0.2);
-            board.rotation.x = -0.15;
-            landmarkGroup.add(board);
-
-            // Easel legs
-            const legGeo = new THREE.CylinderGeometry(0.06, 0.06, 2.0, 4);
-            const legMat = new THREE.MeshLambertMaterial({ color: 0x92400e });
-            [-0.6, 0.6].forEach(ox => {
-              const leg = new THREE.Mesh(legGeo, legMat);
-              leg.position.set(ox, 1.0, -0.2);
-              leg.rotation.z = ox * -0.2;
-              landmarkGroup.add(leg);
-            });
-
-            // Glowing generative gem / creative crystal
-            const gemGeo = new THREE.OctahedronGeometry(0.5, 0);
-            const gemMat = new THREE.MeshLambertMaterial({ color: 0x2dd4bf, flatShading: true });
-            const gem = new THREE.Mesh(gemGeo, gemMat);
-            gem.position.set(0.6, 1.2, 0.5);
-            gem.rotation.y = 0.5;
-            landmarkGroup.add(gem);
-          }
-          break;
-
-        case "D": // Gemini & Multimodal: Twin glowing obelisks (Gemini dual stars) + Multimodal Notebook
-          {
-            [-0.45, 0.45].forEach((ox, idx) => {
-              const spireGeo = new THREE.ConeGeometry(0.4, 2.4, 5);
-              const spireMat = new THREE.MeshLambertMaterial({
-                color: idx === 0 ? 0x38bdf8 : 0x818cf8,
-                flatShading: true
-              });
-              const spire = new THREE.Mesh(spireGeo, spireMat);
-              spire.position.set(ox, 1.2, 0);
-              landmarkGroup.add(spire);
-            });
-
-            // Golden floating constellation ring
-            const haloGeo = new THREE.TorusGeometry(0.9, 0.06, 6, 16);
-            const haloMat = new THREE.MeshBasicMaterial({ color: 0xfde047 });
-            const halo = new THREE.Mesh(haloGeo, haloMat);
-            halo.position.set(0, 1.8, 0);
-            halo.rotation.x = Math.PI / 3;
-            landmarkGroup.add(halo);
-          }
-          break;
-
-        case "E": // AI Agents: Cozy Robot Hut with antenna & gear
-          {
-            // Robot cottage body
-            const hutGeo = new THREE.BoxGeometry(1.5, 1.3, 1.5);
-            const hutMat = new THREE.MeshLambertMaterial({ color: 0xfef08a, flatShading: true });
-            const hut = new THREE.Mesh(hutGeo, hutMat);
-            hut.position.y = 0.65;
-            landmarkGroup.add(hut);
-
-            // Roof
-            const roofGeo = new THREE.ConeGeometry(1.3, 0.8, 4);
-            const roofMat = new THREE.MeshLambertMaterial({ color: 0xd97706, flatShading: true });
-            const roof = new THREE.Mesh(roofGeo, roofMat);
-            roof.position.y = 1.7;
-            roof.rotation.y = Math.PI / 4;
-            landmarkGroup.add(roof);
-
-            // Robot antenna with ball
-            const antGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.8, 4);
-            const antMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
-            const ant = new THREE.Mesh(antGeo, antMat);
-            ant.position.set(0, 2.4, 0);
-            landmarkGroup.add(ant);
-
-            const ballGeo = new THREE.SphereGeometry(0.18, 6, 6);
-            const ballMat = new THREE.MeshLambertMaterial({ color: 0xef4444 });
-            const ball = new THREE.Mesh(ballGeo, ballMat);
-            ball.position.set(0, 2.8, 0);
-            landmarkGroup.add(ball);
-          }
-          break;
-
-        case "F": // Next Wave: Futuristic Observatory dome & telescope
-          {
-            // Observatory base cylinder
-            const obsBaseGeo = new THREE.CylinderGeometry(1.1, 1.2, 1.2, 8);
-            const obsBaseMat = new THREE.MeshLambertMaterial({ color: 0xe0e7ff, flatShading: true });
-            const obsBase = new THREE.Mesh(obsBaseGeo, obsBaseMat);
-            obsBase.position.y = 0.6;
-            landmarkGroup.add(obsBase);
-
-            // Hemisphere dome
-            const domeGeo = new THREE.SphereGeometry(1.1, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-            const domeMat = new THREE.MeshLambertMaterial({ color: 0x818cf8, flatShading: true });
-            const dome = new THREE.Mesh(domeGeo, domeMat);
-            dome.position.y = 1.2;
-            landmarkGroup.add(dome);
-
-            // Stargazing telescope
-            const tubeGeo = new THREE.CylinderGeometry(0.18, 0.24, 1.4, 6);
-            const tubeMat = new THREE.MeshLambertMaterial({ color: 0x4338ca });
-            const tube = new THREE.Mesh(tubeGeo, tubeMat);
-            tube.position.set(0, 1.7, 0.4);
-            tube.rotation.x = -Math.PI / 3.5;
-            landmarkGroup.add(tube);
-          }
-          break;
-      }
-
-      group.add(landmarkGroup);
-
-      // Hit-testing invisible sphere for friendly large touch targets
-      const hitSphereGeo = new THREE.SphereGeometry(baseRadius * 1.2, 8, 6);
-      const hitSphereMat = new THREE.MeshBasicMaterial({ visible: false });
-      const hitSphere = new THREE.Mesh(hitSphereGeo, hitSphereMat);
-      hitSphere.position.y = 1.2;
-      group.add(hitSphere);
-
-      return group;
-    }
-
-    /* Ambient slow drifting cloud puffs */
-    function createAmbientClouds() {
-      cloudGroup = new THREE.Group();
-      scene.add(cloudGroup);
-
-      const cloudMat = new THREE.MeshLambertMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.55,
-        flatShading: true
-      });
-
-      for (let i = 0; i < 9; i++) {
-        const cloud = new THREE.Group();
-        const puffCount = 3 + Math.floor(Math.random() * 3);
-        for (let p = 0; p < puffCount; p++) {
-          const puffGeo = new THREE.DodecahedronGeometry(1.2 + Math.random() * 0.8, 0);
-          const puff = new THREE.Mesh(puffGeo, cloudMat);
-          puff.position.set((p - 1) * 1.1, Math.random() * 0.4, (Math.random() - 0.5) * 0.8);
-          cloud.add(puff);
+          islandRoot.add(trunk);
+          islandRoot.add(foliage);
         }
 
-        const angle = Math.random() * Math.PI * 2;
-        const radius = 22 + Math.random() * 18;
-        cloud.position.set(Math.cos(angle) * radius, 6 + Math.random() * 8, Math.sin(angle) * radius);
-        cloud.userData = { speed: 0.0008 + Math.random() * 0.001, radius: radius, angle: angle };
-        cloudGroup.add(cloud);
+        // 5. Unique Thematic Landmark for each island
+        const landmark = createLandmark(island.landmarkType);
+        landmark.position.set(0, 1.4, 0);
+        islandRoot.add(landmark);
+
+        // 6. Cute Blooming Flowers on Island Grass
+        addIslandFlowers(islandRoot);
+
+        // 7. Cute Symbol of Plants and Diamonds on EVERY Island
+        const plantSymbol = createIslandPlantSymbol(i);
+        islandRoot.add(plantSymbol);
+
+        const diamondSymbol = createIslandDiamond(i);
+        islandRoot.add(diamondSymbol);
+
+        // 8. One Small Version of Me staying on Island Unit 3 (Island C)
+        if (i === 2) {
+          const miniMe = createMiniMe();
+          islandRoot.add(miniMe);
+        }
+
+        scene.add(islandRoot);
+        islandMeshes.push(islandRoot);
+
+        // Generate HUD Overlay Label
+        createHudLabel(island, i);
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       Create Distinct Low-Poly Landmarks
+       -------------------------------------------------------------------------- */
+    function createLandmark(type) {
+      const g = new THREE.Group();
+
+      switch (type) {
+        case 'camera_tower': {
+          // Island A: Tiny cute camera tower
+          const standGeo = new THREE.CylinderGeometry(0.2, 0.4, 1.5, 8);
+          const standMat = new THREE.MeshLambertMaterial({ color: 0x8e9aaf });
+          const stand = new THREE.Mesh(standGeo, standMat);
+          stand.position.y = 0.75;
+          g.add(stand);
+
+          const camBodyGeo = new THREE.BoxGeometry(1.6, 1.0, 1.1);
+          const camBodyMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+          const camBody = new THREE.Mesh(camBodyGeo, camBodyMat);
+          camBody.position.y = 1.9;
+          g.add(camBody);
+
+          const lensGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.6, 16);
+          const lensMat = new THREE.MeshLambertMaterial({ color: 0x38bdf8 });
+          const lens = new THREE.Mesh(lensGeo, lensMat);
+          lens.rotation.x = Math.PI / 2;
+          lens.position.set(0, 1.9, 0.7);
+          g.add(lens);
+
+          const flashGeo = new THREE.SphereGeometry(0.18, 8, 8);
+          const flashMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+          const flash = new THREE.Mesh(flashGeo, flashMat);
+          flash.position.set(0.5, 2.5, 0);
+          g.add(flash);
+          break;
+        }
+
+        case 'face_hill': {
+          // Island B: Cute smiling face hill & floating landmark dots
+          const headGeo = new THREE.SphereGeometry(1.4, 16, 12);
+          const headMat = new THREE.MeshLambertMaterial({ color: 0xa8dadc, flatShading: true });
+          const head = new THREE.Mesh(headGeo, headMat);
+          head.position.y = 1.3;
+          head.scale.set(1, 0.9, 1);
+          g.add(head);
+
+          // Eyes
+          const eyeGeo = new THREE.SphereGeometry(0.14, 8, 8);
+          const eyeMat = new THREE.MeshLambertMaterial({ color: 0x1d3557 });
+          const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeL.position.set(-0.45, 1.45, 1.25);
+          const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeR.position.set(0.45, 1.45, 1.25);
+          g.add(eyeL);
+          g.add(eyeR);
+
+          // Landmark pins (MediaPipe dots)
+          const dotColors = [0xe63946, 0x457b9d, 0x2a9d8f];
+          for (let d = 0; d < 3; d++) {
+            const dotGeo = new THREE.SphereGeometry(0.15, 8, 8);
+            const dotMat = new THREE.MeshBasicMaterial({ color: dotColors[d] });
+            const dot = new THREE.Mesh(dotGeo, dotMat);
+            dot.position.set((d - 1) * 0.8, 2.5 + (d === 1 ? 0.3 : 0), 0.5);
+            g.add(dot);
+          }
+          break;
+        }
+
+        case 'creative_easel': {
+          // Island C: Artist easel, canvas & creative building blocks
+          const easelGeo = new THREE.CylinderGeometry(0.08, 0.1, 2.2, 6);
+          const easelMat = new THREE.MeshLambertMaterial({ color: 0xa16207 });
+          const leg1 = new THREE.Mesh(easelGeo, easelMat);
+          leg1.position.set(-0.5, 1.1, 0);
+          leg1.rotation.z = -0.15;
+          const leg2 = new THREE.Mesh(easelGeo, easelMat);
+          leg2.position.set(0.5, 1.1, 0);
+          leg2.rotation.z = 0.15;
+          g.add(leg1);
+          g.add(leg2);
+
+          const canvasGeo = new THREE.BoxGeometry(1.6, 1.2, 0.1);
+          const canvasMat = new THREE.MeshLambertMaterial({ color: 0xfef9c3 });
+          const canvasMesh = new THREE.Mesh(canvasGeo, canvasMat);
+          canvasMesh.position.set(0, 1.4, 0.1);
+          g.add(canvasMesh);
+
+          // Colorful builder blocks
+          const b1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshLambertMaterial({ color: 0xf43f5e }));
+          b1.position.set(1.2, 0.25, 0.4);
+          const b2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), new THREE.MeshLambertMaterial({ color: 0x3b82f6 }));
+          b2.position.set(1.1, 0.65, 0.4);
+          g.add(b1);
+          g.add(b2);
+          break;
+        }
+
+        case 'gemini_spire': {
+          // Island D: Futuristic Gemini twin gem crystal tower
+          const gemGeo = new THREE.OctahedronGeometry(0.9, 0);
+          const gemMat = new THREE.MeshLambertMaterial({ color: 0xc084fc, flatShading: true });
+
+          const gem1 = new THREE.Mesh(gemGeo, gemMat);
+          gem1.scale.set(0.8, 1.7, 0.8);
+          gem1.position.set(-0.45, 1.6, 0);
+
+          const gem2 = new THREE.Mesh(gemGeo, gemMat);
+          gem2.scale.set(0.65, 1.3, 0.65);
+          gem2.position.set(0.45, 1.3, 0.2);
+
+          g.add(gem1);
+          g.add(gem2);
+
+          // Floating halo ring
+          const haloGeo = new THREE.TorusGeometry(1.1, 0.06, 8, 24);
+          const haloMat = new THREE.MeshBasicMaterial({ color: 0xe9d5ff });
+          const halo = new THREE.Mesh(haloGeo, haloMat);
+          halo.rotation.x = Math.PI / 3;
+          halo.position.set(0, 1.8, 0);
+          g.add(halo);
+          break;
+        }
+
+        case 'agent_tower': {
+          // Island E: Robot hut / Agent tower with antenna & gear
+          const baseGeo = new THREE.CylinderGeometry(1.0, 1.2, 1.2, 8);
+          const baseMat = new THREE.MeshLambertMaterial({ color: 0x64748b, flatShading: true });
+          const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+          baseMesh.position.y = 0.6;
+          g.add(baseMesh);
+
+          const domeGeo = new THREE.SphereGeometry(0.9, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+          const domeMat = new THREE.MeshLambertMaterial({ color: 0x2dd4bf });
+          const domeMesh = new THREE.Mesh(domeGeo, domeMat);
+          domeMesh.position.y = 1.2;
+          g.add(domeMesh);
+
+          // Antenna
+          const antGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.9, 6);
+          const antMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+          const ant = new THREE.Mesh(antGeo, antMat);
+          ant.position.y = 2.4;
+          g.add(ant);
+
+          const orbGeo = new THREE.SphereGeometry(0.18, 8, 8);
+          const orbMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+          const orb = new THREE.Mesh(orbGeo, orbMat);
+          orb.position.y = 2.9;
+          g.add(orb);
+          break;
+        }
+
+        case 'observatory_dome': {
+          // Island F: Observatory dome with telescope gazing at sky
+          const obsGeo = new THREE.SphereGeometry(1.2, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+          const obsMat = new THREE.MeshLambertMaterial({ color: 0xf472b6, flatShading: true });
+          const obs = new THREE.Mesh(obsGeo, obsMat);
+          obs.position.y = 0.6;
+          g.add(obs);
+
+          const teleGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.8, 10);
+          const teleMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+          const tele = new THREE.Mesh(teleGeo, teleMat);
+          tele.position.set(0.3, 1.6, 0.3);
+          tele.rotation.x = -Math.PI / 4;
+          tele.rotation.z = -Math.PI / 6;
+          g.add(tele);
+          break;
+        }
+      }
+
+      return g;
+    }
+
+
+    /* --------------------------------------------------------------------------
+       Add Cute Blooming Flowers on Island Platter
+       -------------------------------------------------------------------------- */
+    function addIslandFlowers(islandRoot) {
+      const flowerColors = [0xff8da1, 0xffb7b2, 0xffdac1, 0xe2f0cb, 0xb5ead7, 0xc7ceea, 0xffcbf2];
+      for (let f = 0; f < 10; f++) {
+        const flAngle = (f / 10) * Math.PI * 2 + Math.random() * 0.4;
+        const flDist = 1.0 + Math.random() * 2.8;
+        const flX = Math.cos(flAngle) * flDist;
+        const flZ = Math.sin(flAngle) * flDist;
+
+        const flowerGroup = new THREE.Group();
+        flowerGroup.position.set(flX, 1.4, flZ);
+
+        // Tiny green stem
+        const stemGeo = new THREE.CylinderGeometry(0.025, 0.03, 0.35, 5);
+        const stemMat = new THREE.MeshLambertMaterial({ color: 0x588157 });
+        const stem = new THREE.Mesh(stemGeo, stemMat);
+        stem.position.y = 0.17;
+        flowerGroup.add(stem);
+
+        // Flower golden center
+        const centerGeo = new THREE.SphereGeometry(0.07, 6, 6);
+        const centerMat = new THREE.MeshLambertMaterial({ color: 0xffd166 });
+        const center = new THREE.Mesh(centerGeo, centerMat);
+        center.position.y = 0.35;
+        flowerGroup.add(center);
+
+        // 5 Cute rounded petals
+        const petalColor = flowerColors[f % flowerColors.length];
+        const petalMat = new THREE.MeshLambertMaterial({ color: petalColor });
+        for (let p = 0; p < 5; p++) {
+          const pAngle = (p / 5) * Math.PI * 2;
+          const pGeo = new THREE.SphereGeometry(0.065, 5, 5);
+          pGeo.scale(1.1, 0.5, 1.2);
+          const pet = new THREE.Mesh(pGeo, petalMat);
+          pet.position.set(Math.cos(pAngle) * 0.11, 0.35, Math.sin(pAngle) * 0.11);
+          flowerGroup.add(pet);
+        }
+
+        islandRoot.add(flowerGroup);
       }
     }
 
-    /* Create HTML Label Element above each island */
-    function createIslandHtmlLabel(data, islandObj) {
-      const container = document.getElementById("labels-container");
-      const label = document.createElement("button");
-      label.className = "island-label";
-      label.id = `label-island-${data.id}`;
-      label.setAttribute("aria-label", `Open Island ${data.id}: ${data.title}`);
-      label.innerHTML = `
-        <span class="badge">${data.id}</span>
-        <span>${data.title}</span>
+    /* --------------------------------------------------------------------------
+       Cute Symbol of Plants on Each Island
+       -------------------------------------------------------------------------- */
+    function createIslandPlantSymbol(islandIndex) {
+      const pGroup = new THREE.Group();
+      pGroup.position.set(-1.8, 1.4, -1.2);
+
+      // Ceramic planter pot with pastel tint
+      const potGeo = new THREE.CylinderGeometry(0.35, 0.26, 0.45, 10);
+      const potColors = [0xff9ebb, 0xb8e0d2, 0xffcad4, 0xd8bbff, 0x9bf6ff, 0xfde2e4];
+      const potMat = new THREE.MeshLambertMaterial({ color: potColors[islandIndex % potColors.length] });
+      const pot = new THREE.Mesh(potGeo, potMat);
+      pot.position.y = 0.22;
+      pGroup.add(pot);
+
+      // Rich soil
+      const soilGeo = new THREE.CylinderGeometry(0.33, 0.33, 0.08, 10);
+      const soilMat = new THREE.MeshLambertMaterial({ color: 0x583101 });
+      const soil = new THREE.Mesh(soilGeo, soilMat);
+      soil.position.y = 0.42;
+      pGroup.add(soil);
+
+      // Cute sprouted curved stem
+      const stemGeo = new THREE.CylinderGeometry(0.06, 0.08, 0.65, 8);
+      const stemMat = new THREE.MeshLambertMaterial({ color: 0x40916c });
+      const stem = new THREE.Mesh(stemGeo, stemMat);
+      stem.position.set(0, 0.7, 0);
+      stem.rotation.z = 0.1;
+      pGroup.add(stem);
+
+      // Dual emerald sprout leaves
+      const leafGeo = new THREE.SphereGeometry(0.19, 6, 6);
+      leafGeo.scale(1.4, 0.35, 0.8);
+      const leafMat = new THREE.MeshLambertMaterial({ color: 0x74c69d });
+      const leaf1 = new THREE.Mesh(leafGeo, leafMat);
+      leaf1.position.set(0.2, 0.8, 0.08);
+      leaf1.rotation.set(0.2, 0, 0.38);
+      const leaf2 = new THREE.Mesh(leafGeo, leafMat);
+      leaf2.position.set(-0.18, 0.72, -0.06);
+      leaf2.rotation.set(-0.2, 0, -0.38);
+      pGroup.add(leaf1);
+      pGroup.add(leaf2);
+
+      // Cute glowing blossom bud on top
+      const budGeo = new THREE.SphereGeometry(0.15, 8, 8);
+      const budMat = new THREE.MeshLambertMaterial({ color: 0xff4d6d });
+      const bud = new THREE.Mesh(budGeo, budMat);
+      bud.position.set(0.05, 1.05, 0);
+      pGroup.add(bud);
+
+      return pGroup;
+    }
+
+    /* --------------------------------------------------------------------------
+       Cute Sparkling Faceted Diamond on Each Island
+       -------------------------------------------------------------------------- */
+    function createIslandDiamond(islandIndex) {
+      const dGroup = new THREE.Group();
+      dGroup.name = "islandDiamond";
+      dGroup.position.set(2.0, 2.2, -1.0);
+
+      // Faceted Diamond: Crown (upper bevel) + Pavilion (lower facet)
+      const crownGeo = new THREE.CylinderGeometry(0.32, 0.54, 0.28, 8);
+      const pavGeo = new THREE.ConeGeometry(0.54, 0.68, 8);
+
+      const diamondColors = [0xd6eaf8, 0xfce4ec, 0xe8eaf6, 0xe0f7fa, 0xf3e5f5, 0xfff3e0];
+      const gemMat = new THREE.MeshPhongMaterial({
+        color: diamondColors[islandIndex % diamondColors.length],
+        specular: 0xffffff,
+        shininess: 120,
+        flatShading: true,
+        transparent: true,
+        opacity: 0.9,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.2
+      });
+
+      const crown = new THREE.Mesh(crownGeo, gemMat);
+      crown.position.y = 0.14;
+      dGroup.add(crown);
+
+      const pav = new THREE.Mesh(pavGeo, gemMat);
+      pav.rotation.x = Math.PI;
+      pav.position.y = -0.34;
+      dGroup.add(pav);
+
+      // Orbiting sparkle glints
+      for (let s = 0; s < 3; s++) {
+        const glintGeo = new THREE.OctahedronGeometry(0.08, 0);
+        const glintMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const glint = new THREE.Mesh(glintGeo, glintMat);
+        const gAngle = (s / 3) * Math.PI * 2;
+        glint.position.set(Math.cos(gAngle) * 0.72, (s - 1) * 0.22, Math.sin(gAngle) * 0.72);
+        dGroup.add(glint);
+      }
+
+      dGroup.userData = { baseY: 2.2, phase: islandIndex * 1.1 };
+      return dGroup;
+    }
+
+    /* --------------------------------------------------------------------------
+       Small Version of Me (Chibi Avatar on Island Unit 3)
+       -------------------------------------------------------------------------- */
+    function createMiniMe() {
+      const me = new THREE.Group();
+      me.name = "miniMeAvatar";
+      me.position.set(-1.0, 1.4, 1.2);
+      me.rotation.y = Math.PI / 4;
+
+      // Legs and stylish sneakers
+      const legGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.55, 8);
+      const legMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+      const legL = new THREE.Mesh(legGeo, legMat);
+      legL.position.set(-0.16, 0.28, 0);
+      const legR = new THREE.Mesh(legGeo, legMat);
+      legR.position.set(0.16, 0.28, 0);
+      me.add(legL);
+      me.add(legR);
+
+      const shoeGeo = new THREE.BoxGeometry(0.19, 0.14, 0.3);
+      const shoeMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+      const shoeL = new THREE.Mesh(shoeGeo, shoeMat);
+      shoeL.position.set(-0.16, 0.07, 0.06);
+      const shoeR = new THREE.Mesh(shoeGeo, shoeMat);
+      shoeR.position.set(0.16, 0.07, 0.06);
+      me.add(shoeL);
+      me.add(shoeR);
+
+      // Torso: Cute pastel rose hoodie
+      const bodyGeo = new THREE.CylinderGeometry(0.32, 0.36, 0.65, 10);
+      const bodyMat = new THREE.MeshLambertMaterial({ color: 0xec4899 });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.position.y = 0.85;
+      me.add(body);
+
+      // Heart badge on hoodie
+      const badgeGeo = new THREE.SphereGeometry(0.07, 6, 6);
+      badgeGeo.scale(1.2, 1, 0.4);
+      const badgeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const badge = new THREE.Mesh(badgeGeo, badgeMat);
+      badge.position.set(0.08, 0.95, 0.32);
+      me.add(badge);
+
+      // Head & Face Group
+      const headGroup = new THREE.Group();
+      headGroup.position.y = 1.45;
+      headGroup.name = "miniMeHead";
+
+      const skinMat = new THREE.MeshLambertMaterial({ color: 0xffdfba });
+      const headGeo = new THREE.SphereGeometry(0.38, 16, 14);
+      headGeo.scale(1, 0.95, 0.95);
+      const head = new THREE.Mesh(headGeo, skinMat);
+      headGroup.add(head);
+
+      // Smiling dark eyes
+      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x1e293b });
+      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), eyeMat);
+      eyeL.position.set(-0.13, 0.02, 0.33);
+      const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), eyeMat);
+      eyeR.position.set(0.13, 0.02, 0.33);
+      headGroup.add(eyeL);
+      headGroup.add(eyeR);
+
+      // Rosy blush cheeks
+      const blushMat = new THREE.MeshBasicMaterial({ color: 0xf472b6, transparent: true, opacity: 0.65 });
+      const blushL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), blushMat);
+      blushL.position.set(-0.21, -0.06, 0.31);
+      const blushR = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), blushMat);
+      blushR.position.set(0.21, -0.06, 0.31);
+      headGroup.add(blushL);
+      headGroup.add(blushR);
+
+      // Cute hair with bangs
+      const hairMat = new THREE.MeshLambertMaterial({ color: 0x3d261d });
+      const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.41, 14, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat);
+      hairCap.position.set(0, 0.08, -0.03);
+      headGroup.add(hairCap);
+
+      for (let b = -2; b <= 2; b++) {
+        const bang = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 6), hairMat);
+        bang.position.set(b * 0.08, 0.22 - Math.abs(b) * 0.03, 0.3);
+        headGroup.add(bang);
+      }
+      me.add(headGroup);
+
+      // Left Arm (resting)
+      const armGeo = new THREE.CylinderGeometry(0.08, 0.07, 0.5, 8);
+      const armL = new THREE.Mesh(armGeo, bodyMat);
+      armL.position.set(-0.4, 0.8, 0);
+      armL.rotation.z = 0.2;
+      me.add(armL);
+      const handL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 6), skinMat);
+      handL.position.set(-0.46, 0.54, 0);
+      me.add(handL);
+
+      // Right Arm (Friendly waving motion!)
+      const armRGroup = new THREE.Group();
+      armRGroup.name = "wavingArm";
+      armRGroup.position.set(0.38, 1.05, 0);
+
+      const armR = new THREE.Mesh(armGeo, bodyMat);
+      armR.position.set(0.12, 0.22, 0);
+      armR.rotation.z = -0.5;
+      armRGroup.add(armR);
+
+      const handR = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), skinMat);
+      handR.position.set(0.24, 0.44, 0);
+      armRGroup.add(handR);
+
+      me.add(armRGroup);
+
+      // Floating Cute Nametag Sprite above Mini Me
+      const tagCanvas = document.createElement('canvas');
+      tagCanvas.width = 256;
+      tagCanvas.height = 80;
+      const ctx = tagCanvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(10, 10, 236, 60, 30);
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#f472b6';
+      ctx.stroke();
+      ctx.font = 'bold 28px "Plus Jakarta Sans", sans-serif';
+      ctx.fillStyle = '#db2777';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🌸 Mini Me ✨', 128, 40);
+
+      const tagTex = new THREE.CanvasTexture(tagCanvas);
+      const tagSpriteMat = new THREE.SpriteMaterial({ map: tagTex, transparent: true });
+      const tagSprite = new THREE.Sprite(tagSpriteMat);
+      tagSprite.position.set(0, 2.38, 0);
+      tagSprite.scale.set(1.5, 0.5, 1);
+      me.add(tagSprite);
+
+      me.userData = { baseY: 1.4 };
+      return me;
+    }
+
+    /* --------------------------------------------------------------------------
+       Floating Flower Petals Drifting in the Sky
+       -------------------------------------------------------------------------- */
+    function buildFloatingPetals() {
+      petalsGroup = new THREE.Group();
+      const petalGeo = new THREE.CylinderGeometry(0.22, 0.08, 0.04, 7);
+      petalGeo.scale(1, 1, 0.4);
+
+      const petalColors = [0xffccd5, 0xffb3c6, 0xffe5ec, 0xffffff, 0xffcbf2];
+      for (let i = 0; i < 150; i++) {
+        const mat = new THREE.MeshLambertMaterial({
+          color: petalColors[i % petalColors.length],
+          transparent: true,
+          opacity: 0.85
+        });
+        const petal = new THREE.Mesh(petalGeo, mat);
+        const r = 10 + Math.random() * 38;
+        const theta = Math.random() * Math.PI * 2;
+        petal.position.set(
+          Math.cos(theta) * r,
+          Math.random() * 35 - 5,
+          Math.sin(theta) * r
+        );
+        petal.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+        petal.userData = {
+          speedY: 0.015 + Math.random() * 0.02,
+          rotSpeedX: 0.008 + Math.random() * 0.015,
+          rotSpeedZ: 0.008 + Math.random() * 0.015,
+          phase: Math.random() * Math.PI * 2,
+          swayAmp: 0.012 + Math.random() * 0.015
+        };
+        petalsGroup.add(petal);
+      }
+      scene.add(petalsGroup);
+    }
+
+    /* --------------------------------------------------------------------------
+       Fluttering 3D Butterflies Circling the Islands
+       -------------------------------------------------------------------------- */
+    function buildButterflies() {
+      butterfliesGroup = new THREE.Group();
+      const butterflyColors = [0xffa7c4, 0xd0bfff, 0xffc6ff, 0xffd166, 0xbbf7d0, 0xa5f3fc];
+
+      for (let i = 0; i < 12; i++) {
+        const b = new THREE.Group();
+        const color = butterflyColors[i % butterflyColors.length];
+
+        // Tiny body
+        const bodyGeo = new THREE.CylinderGeometry(0.05, 0.04, 0.38, 6);
+        const bodyMat = new THREE.MeshLambertMaterial({ color: 0x4a3b47 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.rotation.x = Math.PI / 2;
+        b.add(body);
+
+        // Head
+        const headGeo = new THREE.SphereGeometry(0.07, 6, 6);
+        const headMat = new THREE.MeshLambertMaterial({ color: 0x4a3b47 });
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.position.set(0, 0.02, 0.22);
+        b.add(head);
+
+        // Wing Shape
+        const wingShape = new THREE.Shape();
+        wingShape.moveTo(0, 0);
+        wingShape.quadraticCurveTo(0.45, 0.55, 0.75, 0.45);
+        wingShape.quadraticCurveTo(0.85, 0.1, 0.55, -0.2);
+        wingShape.quadraticCurveTo(0.2, -0.3, 0, 0);
+
+        const wingGeo = new THREE.ShapeGeometry(wingShape);
+        const wingMat = new THREE.MeshLambertMaterial({
+          color: color,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.92,
+          roughness: 0.4
+        });
+
+        const leftWingPivot = new THREE.Group();
+        const leftWing = new THREE.Mesh(wingGeo, wingMat);
+        leftWingPivot.add(leftWing);
+
+        const rightWingPivot = new THREE.Group();
+        const rightWing = new THREE.Mesh(wingGeo, wingMat);
+        rightWing.scale.set(-1, 1, 1);
+        rightWingPivot.add(rightWing);
+
+        b.add(leftWingPivot);
+        b.add(rightWingPivot);
+
+        const angle = (i / 12) * Math.PI * 2;
+        const radius = 18 + Math.random() * 14;
+        const heightBase = 3 + Math.random() * 8;
+        b.position.set(Math.cos(angle) * radius, heightBase, Math.sin(angle) * radius);
+        b.scale.setScalar(0.9 + Math.random() * 0.4);
+
+        b.userData = {
+          leftPivot: leftWingPivot,
+          rightPivot: rightWingPivot,
+          angle: angle,
+          radius: radius,
+          heightBase: heightBase,
+          speed: 0.007 + Math.random() * 0.006,
+          flapSpeed: 16 + Math.random() * 8,
+          flapOffset: Math.random() * 10
+        };
+
+        butterfliesGroup.add(b);
+      }
+      scene.add(butterfliesGroup);
+    }
+
+    /* --------------------------------------------------------------------------
+       Floating Background Clouds and Peaceful Starfield
+       -------------------------------------------------------------------------- */
+    function buildGentleClouds() {
+      cloudGroup = new THREE.Group();
+      const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.72 });
+
+      for (let c = 0; c < 12; c++) {
+        const cluster = new THREE.Group();
+        const numPuffs = 4 + Math.floor(Math.random() * 3);
+        for (let p = 0; p < numPuffs; p++) {
+          const puffGeo = new THREE.DodecahedronGeometry(1.2 + Math.random() * 0.9);
+          const puff = new THREE.Mesh(puffGeo, cloudMat);
+          puff.position.set(
+            (p - numPuffs / 2) * 1.3 + (Math.random() - 0.5) * 0.6,
+            (Math.random() - 0.5) * 0.6,
+            (Math.random() - 0.5) * 0.8
+          );
+          cluster.add(puff);
+        }
+
+        const angle = (c / 12) * Math.PI * 2;
+        const dist = 32 + Math.random() * 16;
+        cluster.position.set(
+          Math.cos(angle) * dist,
+          -4 + Math.random() * 10,
+          Math.sin(angle) * dist
+        );
+        cluster.userData = { speed: 0.0008 + Math.random() * 0.0006, angle: angle, dist: dist, baseY: cluster.position.y };
+        cloudGroup.add(cluster);
+      }
+      scene.add(cloudGroup);
+    }
+
+    function buildAmbientStarfield() {
+      starsGroup = new THREE.Group();
+      const starGeo = new THREE.BufferGeometry();
+      const count = 180;
+      const positions = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const r = 50 + Math.random() * 40;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = Math.abs(r * Math.cos(phi)) + 5; // upper hemisphere
+        positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+      }
+
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const starMat = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.9,
+        transparent: true,
+        opacity: 0.65
+      });
+      const starPoints = new THREE.Points(starGeo, starMat);
+      starsGroup.add(starPoints);
+      scene.add(starsGroup);
+    }
+
+    /* --------------------------------------------------------------------------
+       Create 2D Projected HUD Labels for Islands
+       -------------------------------------------------------------------------- */
+    function createHudLabel(island, index) {
+      const layer = document.getElementById('island-labels-layer');
+      const tag = document.createElement('button');
+      tag.className = 'island-hud-tag';
+      tag.id = `hud-tag-${index}`;
+      tag.setAttribute('data-index', index);
+      tag.setAttribute('aria-label', `Island ${island.id}: ${island.unit} ${island.title}`);
+      tag.innerHTML = `
+        <span class="island-hud-letter">${island.id}</span>
+        <span>${index === 2 ? '🌸 Mini Me • ' + island.unit + ' 💎' : '🌱 ' + island.unit + ' 💎'}</span>
       `;
 
-      label.addEventListener("click", () => {
-        openIsland(data.id);
+      tag.addEventListener('click', (e) => {
+        e.stopPropagation();
+        focusIsland(index);
       });
 
-      container.appendChild(label);
-      labelElements.push({ element: label, object: islandObj, data: data });
+      tag.addEventListener('mouseenter', () => {
+        setHoverIsland(index);
+      });
+      tag.addEventListener('mouseleave', () => {
+        setHoverIsland(null);
+      });
+      tag.addEventListener('focus', () => {
+        setHoverIsland(index);
+      });
+      tag.addEventListener('blur', () => {
+        setHoverIsland(null);
+      });
+
+      layer.appendChild(tag);
     }
 
-    /* Update HTML Label Screen Coordinates */
-    function updateHtmlLabels() {
-      if (!camera || !labelElements) return;
-
+    function updateHudLabels() {
+      if (!camera || islandMeshes.length === 0) return;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
       const tempV = new THREE.Vector3();
-      const halfW = window.innerWidth / 2;
-      const halfH = window.innerHeight / 2;
 
-      labelElements.forEach(item => {
-        // Position above the island
-        item.object.getWorldPosition(tempV);
+      islandMeshes.forEach((mesh, idx) => {
+        const tag = document.getElementById(`hud-tag-${idx}`);
+        if (!tag) return;
+
+        // Get world coordinate slightly above the island
+        mesh.getWorldPosition(tempV);
         tempV.y += 4.5;
+
+        // Project to 2D screen coordinate
         tempV.project(camera);
 
-        // Check if behind camera or obscured
-        const isBehind = tempV.z > 1.0;
-        if (isBehind) {
-          item.element.style.display = "none";
-        } else {
-          item.element.style.display = "flex";
-          const x = (tempV.x * halfW) + halfW;
-          const y = -(tempV.y * halfH) + halfH;
-          item.element.style.left = `${x}px`;
-          item.element.style.top = `${y}px`;
+        // Check if point is in front of camera
+        if (tempV.z > 1) {
+          tag.style.display = 'none';
+          return;
         }
+
+        tag.style.display = 'flex';
+        const x = (tempV.x * 0.5 + 0.5) * width;
+        const y = (-(tempV.y * 0.5) + 0.5) * height;
+        tag.style.left = `${x}px`;
+        tag.style.top = `${y}px`;
       });
     }
 
-    /* =========================================================================
-       3. INTERACTION & CAMERA SMOOTH NAVIGATION
-       ========================================================================= */
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
+    /* --------------------------------------------------------------------------
+       Raycasting & Pointer Handlers
+       -------------------------------------------------------------------------- */
     let pointerDownPos = { x: 0, y: 0 };
+
+    function onPointerMove(e) {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      if (isFlyAnimating) return;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(islandMeshes, true);
+
+      if (intersects.length > 0) {
+        let root = intersects[0].object;
+        while (root.parent && root.parent !== scene) {
+          root = root.parent;
+        }
+        if (root.userData && typeof root.userData.index === 'number') {
+          setHoverIsland(root.userData.index);
+          return;
+        }
+      }
+      setHoverIsland(null);
+    }
 
     function onPointerDown(e) {
       pointerDownPos.x = e.clientX;
       pointerDownPos.y = e.clientY;
     }
 
-    function onSceneClick(e) {
-      // Disregard if drag was significant (user was orbiting)
+    function onCanvasClick(e) {
+      // Ignore if user was dragging orbit controls
       const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-      if (dist > 8) return;
+      if (dist > 6) return;
 
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -1396,73 +2256,216 @@
       const intersects = raycaster.intersectObjects(islandMeshes, true);
 
       if (intersects.length > 0) {
-        // Find top-level island group
-        let obj = intersects[0].object;
-        while (obj.parent && obj.parent !== islandGroup) {
-          obj = obj.parent;
+        let root = intersects[0].object;
+        while (root.parent && root.parent !== scene) {
+          root = root.parent;
         }
-        if (obj.userData && obj.userData.islandData) {
-          openIsland(obj.userData.islandData.id);
+        if (root.userData && typeof root.userData.index === 'number') {
+          focusIsland(root.userData.index);
         }
       }
     }
 
-    /* Smoothly Fly Camera to Selected Island */
-    function openIsland(islandId) {
-      const targetIsland = islandMeshes.find(m => m.userData.islandData.id === islandId);
-      if (!targetIsland) return;
+    function setHoverIsland(index) {
+      if (hoveredIslandIndex === index) return;
+      hoveredIslandIndex = index;
 
-      const data = targetIsland.userData.islandData;
-      selectedIsland = data;
-
-      // Position camera offset to view the island comfortably while drawer is open
-      const worldPos = new THREE.Vector3();
-      targetIsland.getWorldPosition(worldPos);
-
-      // On wide screens, bias the camera slightly left so the right drawer doesn't obstruct
-      const isMobile = window.innerWidth <= 768;
-      const camOffset = isMobile ? new THREE.Vector3(0, 9, 13) : new THREE.Vector3(-3.5, 9, 14);
-
-      camTargetPos.copy(worldPos).add(camOffset);
-      camLookTarget.copy(worldPos).add(new THREE.Vector3(0, 1.2, 0));
-      isAnimatingCamera = true;
-
-      // Instant transition if in low stimulation mode
-      if (isLowStim) {
-        camera.position.copy(camTargetPos);
-        controls.target.copy(camLookTarget);
-        isAnimatingCamera = false;
-      }
-
-      // Populate & open Drawer
-      populateDrawer(data);
-      document.getElementById("island-drawer").classList.add("open");
-
-      // Highlight corresponding label
-      document.querySelectorAll(".island-label").forEach(l => l.classList.remove("active"));
-      const lbl = document.getElementById(`label-island-${data.id}`);
-      if (lbl) lbl.classList.add("active");
+      islandMeshes.forEach((mesh, idx) => {
+        const ring = mesh.getObjectByName("glowRing");
+        if (ring) {
+          if (!lowStimulation && (idx === hoveredIslandIndex || idx === activeIslandIndex)) {
+            ring.material.opacity = 0.75;
+          } else {
+            ring.material.opacity = 0;
+          }
+        }
+      });
+      document.body.style.cursor = (hoveredIslandIndex !== null ? 'pointer' : 'default');
     }
 
-    /* Reset Camera to Overview */
+    /* --------------------------------------------------------------------------
+       Camera Fly-To Animation (Smooth Easing)
+       -------------------------------------------------------------------------- */
+    function flyCameraTo(targetCamPos, targetLookAt, duration = 1100) {
+      if (lowStimulation) {
+        // In low-stimulation mode, jump immediately
+        camera.position.copy(targetCamPos);
+        controls.target.copy(targetLookAt);
+        controls.update();
+        return;
+      }
+
+      flyStartPos.copy(camera.position);
+      flyTargetPos.copy(targetCamPos);
+      flyStartLook.copy(controls.target);
+      flyTargetLook.copy(targetLookAt);
+
+      flyDuration = duration;
+      flyStartTime = performance.now();
+      flyProgress = 0;
+      isFlyAnimating = true;
+      controls.enabled = false;
+    }
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function updateFlyAnimation() {
+      if (!isFlyAnimating) return;
+
+      const elapsed = performance.now() - flyStartTime;
+      flyProgress = Math.min(elapsed / flyDuration, 1.0);
+      const ease = easeInOutCubic(flyProgress);
+
+      camera.position.lerpVectors(flyStartPos, flyTargetPos, ease);
+      controls.target.lerpVectors(flyStartLook, flyTargetLook, ease);
+
+      if (flyProgress >= 1.0) {
+        isFlyAnimating = false;
+        controls.enabled = true;
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       Focus Island & Open Drawer
+       -------------------------------------------------------------------------- */
+    function focusIsland(index) {
+      if (index < 0 || index >= COURSE_ISLANDS.length) return;
+      activeIslandIndex = index;
+
+      const island = COURSE_ISLANDS[index];
+      const mesh = islandMeshes[index];
+      const islandPos = mesh.userData.basePos;
+
+      // Position camera nicely framed looking towards island
+      // Offset slightly to allow drawer room without blocking the island
+      const angle = Math.atan2(islandPos.z, islandPos.x);
+      const camDist = 17;
+      const camX = islandPos.x + Math.cos(angle) * (camDist * 0.8) - Math.sin(angle) * 3;
+      const camZ = islandPos.z + Math.sin(angle) * (camDist * 0.8) + Math.cos(angle) * 3;
+      const camY = islandPos.y + 7.5;
+
+      const targetCamPos = new THREE.Vector3(camX, camY, camZ);
+      const targetLook = new THREE.Vector3(islandPos.x, islandPos.y + 1.2, islandPos.z);
+
+      flyCameraTo(targetCamPos, targetLook, 1200);
+      setHoverIsland(index);
+
+      // Open UI Drawer
+      populateDrawer(island, index);
+      openDrawer();
+
+      // Dismiss instruction hint
+      dismissHint();
+    }
+
     function resetToOverview() {
-      selectedIsland = null;
-      camTargetPos.copy(OVERVIEW_CAM_POS);
-      camLookTarget.copy(OVERVIEW_LOOK_TARGET);
-      isAnimatingCamera = true;
-
-      if (isLowStim) {
-        camera.position.copy(OVERVIEW_CAM_POS);
-        controls.target.copy(OVERVIEW_LOOK_TARGET);
-        isAnimatingCamera = false;
-      }
-
-      closeIslandDrawer();
-      document.querySelectorAll(".island-label").forEach(l => l.classList.remove("active"));
+      activeIslandIndex = null;
+      setHoverIsland(null);
+      flyCameraTo(OVERVIEW_CAM_POS, OVERVIEW_LOOK_TARGET, 1100);
+      closeDrawer();
     }
 
-    function closeIslandDrawer() {
-      document.getElementById("island-drawer").classList.remove("open");
+    /* --------------------------------------------------------------------------
+       Render Animation Loop
+       -------------------------------------------------------------------------- */
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = clock.getDelta();
+      const time = clock.getElapsedTime();
+
+      // 1. Camera Fly-To update
+      if (isFlyAnimating) {
+        updateFlyAnimation();
+      }
+
+      // 2. Island gentle bobbing motion (disabled in low stimulation)
+      if (!lowStimulation) {
+        islandMeshes.forEach((mesh, i) => {
+          const bPos = mesh.userData.basePos;
+          mesh.position.y = bPos.y + Math.sin(time * 1.3 + i * 1.1) * 0.35;
+        });
+
+        // Slow cloud drifting
+        if (cloudGroup) {
+          cloudGroup.children.forEach(c => {
+            c.userData.angle += c.userData.speed;
+            c.position.x = Math.cos(c.userData.angle) * c.userData.dist;
+            c.position.z = Math.sin(c.userData.angle) * c.userData.dist;
+            c.position.y = c.userData.baseY + Math.sin(time * 0.5 + c.userData.dist) * 0.3;
+          });
+        }
+
+        // Ambient star shimmer
+        if (starsGroup) {
+          starsGroup.rotation.y = time * 0.008;
+        }
+
+        // Floating petals drifting
+        if (petalsGroup) {
+          petalsGroup.children.forEach(p => {
+            p.position.y -= p.userData.speedY;
+            p.position.x += Math.sin(time * 1.5 + p.userData.phase) * p.userData.swayAmp;
+            p.rotation.x += p.userData.rotSpeedX;
+            p.rotation.z += p.userData.rotSpeedZ;
+            if (p.position.y < -12) {
+              p.position.y = 25 + Math.random() * 5;
+            }
+          });
+        }
+
+        // Fluttering butterflies
+        if (butterfliesGroup) {
+          butterfliesGroup.children.forEach(b => {
+            b.userData.angle += b.userData.speed;
+            const bx = Math.cos(b.userData.angle) * b.userData.radius;
+            const bz = Math.sin(b.userData.angle) * b.userData.radius;
+            const by = b.userData.heightBase + Math.sin(time * 2.2 + b.userData.flapOffset) * 1.4;
+            b.position.set(bx, by, bz);
+            b.rotation.y = -b.userData.angle + Math.PI / 2;
+            b.rotation.z = Math.sin(time * 3 + b.userData.flapOffset) * 0.15;
+            const flap = Math.sin(time * b.userData.flapSpeed + b.userData.flapOffset) * 0.75;
+            b.userData.leftPivot.rotation.y = flap;
+            b.userData.rightPivot.rotation.y = -flap;
+          });
+        }
+
+        // Shimmering spinning diamonds on each island
+        islandMeshes.forEach(mesh => {
+          const dia = mesh.getObjectByName("islandDiamond");
+          if (dia) {
+            dia.rotation.y += delta * 1.4;
+            dia.position.y = dia.userData.baseY + Math.sin(time * 2.2 + dia.userData.phase) * 0.14;
+          }
+        });
+
+        // Mini Me idle wave and friendly bounce on Island Unit 3
+        const miniMe = scene.getObjectByName("miniMeAvatar");
+        if (miniMe) {
+          miniMe.position.y = miniMe.userData.baseY + Math.sin(time * 2.8) * 0.04;
+          const wavingArm = miniMe.getObjectByName("wavingArm");
+          if (wavingArm) {
+            wavingArm.rotation.z = Math.sin(time * 5.5) * 0.35 - 0.2;
+          }
+          const miniHead = miniMe.getObjectByName("miniMeHead");
+          if (miniHead) {
+            miniHead.rotation.y = Math.sin(time * 1.8) * 0.12;
+          }
+        }
+      } else {
+        // Low-stim: lock islands at exact static position
+        islandMeshes.forEach(mesh => {
+          mesh.position.y = mesh.userData.basePos.y;
+        });
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+
+      // 3. Update 2D Screen HUD Labels
+      updateHudLabels();
     }
 
     function onWindowResize() {
@@ -1470,459 +2473,838 @@
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-      updateHtmlLabels();
     }
 
-    /* Keyboard navigation: Tab / Enter / Esc */
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        resetToOverview();
-      }
-    });
-
-    /* =========================================================================
-       4. DRAWER CONTENT POPULATION & INTERACTIVE ACTIVITIES
-       ========================================================================= */
-    function populateDrawer(data) {
-      document.getElementById("d-badge").innerText = data.id;
-      document.getElementById("d-badge").style.color = data.accentCss;
-      document.getElementById("d-title").innerText = `Island ${data.id}: ${data.unitNum}`;
-      document.getElementById("d-subtitle").innerText = data.title;
-      document.getElementById("d-intro").innerText = data.intro;
-
-      // Render Lessons List (using exact titles and plain descriptions)
-      const lessonsContainer = document.getElementById("d-lessons");
-      lessonsContainer.innerHTML = data.lessons.map(l => `
-        <div class="lesson-card">
-          <div class="lesson-num">${l.num}</div>
-          <div class="lesson-title">${l.title}</div>
-          <div class="lesson-desc">${l.desc}</div>
-        </div>
-      `).join("");
-
-      // Render Specific Interactive Unit Activity
-      const activityContainer = document.getElementById("d-activity");
-      activityContainer.innerHTML = renderActivityHtml(data);
-      bindActivityEvents(data);
+    function showWebGLFallback() {
+      const fallback = document.getElementById('webgl-fallback');
+      if (fallback) fallback.style.display = 'block';
     }
 
-    function renderActivityHtml(data) {
-      const act = data.activity;
-      let bodyHtml = "";
-
-      switch (data.activityType) {
-        case "match": // Unit 1: Match the tool to the task
-          bodyHtml = `
-            <div class="activity-instructions">${act.instruction}</div>
-            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-              ${act.pairs.map((p, idx) => `
-                <div style="font-size:0.8rem; font-weight:600; color:#334155;">Task ${idx+1}: "${p.task}"</div>
-                <div class="match-row">
-                  ${COURSE_ISLANDS[0].activity.pairs.map(toolPair => `
-                    <button class="match-btn match-choice" data-task="${idx}" data-tool="${toolPair.tool}" onclick="handleMatchSelect(this, ${idx}, '${p.tool}')">${toolPair.tool}</button>
-                  `).join("")}
-                </div>
-              `).join("")}
-            </div>
-            <div class="feedback-banner" id="match-feedback"></div>
-          `;
-          break;
-
-        case "quiz": // Unit 2: Which task would you use?
-          bodyHtml = `
-            <div class="activity-instructions"><strong>Scenario:</strong> ${act.scenario}</div>
-            <div style="margin-top:10px;">
-              ${act.options.map((opt, idx) => `
-                <button class="scenario-btn" onclick="handleQuizAnswer(this, ${opt.correct}, '${opt.feedback.replace(/'/g, "\\'")}')">
-                  ${opt.text}
-                </button>
-              `).join("")}
-            </div>
-            <div class="feedback-banner" id="quiz-feedback"></div>
-          `;
-          break;
-
-        case "pipeline": // Unit 3: Pipeline order
-          bodyHtml = `
-            <div class="activity-instructions">${act.instruction}</div>
-            <div class="pipeline-order-list" style="margin-top:10px;">
-              ${act.steps.map((st, idx) => `
-                <div class="pipeline-step">
-                  <span>Step</span>
-                  <select class="pipeline-select" data-correct="${st.correctOrder}">
-                    <option value="">--</option>
-                    <option value="1">Step 1</option>
-                    <option value="2">Step 2</option>
-                    <option value="3">Step 3</option>
-                  </select>
-                  <span>${st.label}</span>
-                </div>
-              `).join("")}
-            </div>
-            <button class="btn" style="align-self:flex-start; margin-top:8px;" onclick="checkPipelineOrder()">Check Order</button>
-            <div class="feedback-banner" id="pipeline-feedback"></div>
-          `;
-          break;
-
-        case "designer": // Unit 4: Design your helper
-          bodyHtml = `
-            <div class="activity-instructions">${act.instruction}</div>
-            <div style="margin-top:8px;">
-              <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">WORKFLOW GOAL:</label>
-              <select id="helper-goal" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--card-border); margin-top:4px; font-family:inherit;">
-                ${act.goals.map(g => `<option value="${g}">${g}</option>`).join("")}
-              </select>
-            </div>
-            <div style="margin-top:12px;">
-              <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px;">SELECT GEMINI MODULES:</label>
-              <div class="checkbox-pill-grid">
-                ${act.components.map((c, i) => `
-                  <label class="check-pill">
-                    <input type="checkbox" value="${c}" checked>
-                    <span>${c}</span>
-                  </label>
-                `).join("")}
-              </div>
-            </div>
-            <button class="btn" style="margin-top:10px; align-self:flex-start;" onclick="generateHelperSummary()">Generate Helper Plan</button>
-            <div class="feedback-banner info" id="helper-feedback"></div>
-          `;
-          break;
-
-        case "agent_sort": // Unit 5: Agent or Chatbot sorting
-          bodyHtml = `
-            <div class="activity-instructions">${act.instruction}</div>
-            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-              ${act.items.map((it, idx) => `
-                <div style="background:#f8fafc; border:1px solid var(--card-border); border-radius:6px; padding:8px 12px;">
-                  <div style="font-size:0.8rem; font-weight:600; margin-bottom:6px;">"${it.text}"</div>
-                  <div style="display:flex; gap:8px;">
-                    <button class="match-btn" onclick="checkAgentSort(this, '${it.answer}', 'Chatbot')">💬 Chatbot</button>
-                    <button class="match-btn" onclick="checkAgentSort(this, '${it.answer}', 'Agent')">🤖 Autonomous Agent</button>
-                  </div>
-                </div>
-              `).join("")}
-            </div>
-            <div style="margin-top:10px;">
-              <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">REFLECTION PROMPT:</label>
-              <input type="text" placeholder="What repetitive task in your studies would you hand to an AI agent?" style="width:100%; padding:8px; border:1px solid var(--card-border); border-radius:6px; font-size:0.8rem; margin-top:4px;" onchange="this.style.borderColor='var(--success)';">
-            </div>
-          `;
-          break;
-
-        case "explorer": // Unit 6: Tool explorer card flip
-          bodyHtml = `
-            <div class="activity-instructions">${act.instruction}</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-              <div>
-                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">TOOL A:</label>
-                <select id="tool-a" style="width:100%; padding:8px; border:1px solid var(--card-border); border-radius:6px; margin-top:4px; font-family:inherit;">
-                  ${act.tools.map((t, idx) => `<option value="${t}" ${idx===0?'selected':''}>${t}</option>`).join("")}
-                </select>
-              </div>
-              <div>
-                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">TOOL B:</label>
-                <select id="tool-b" style="width:100%; padding:8px; border:1px solid var(--card-border); border-radius:6px; margin-top:4px; font-family:inherit;">
-                  ${act.tools.map((t, idx) => `<option value="${t}" ${idx===1?'selected':''}>${t}</option>`).join("")}
-                </select>
-              </div>
-            </div>
-            <div style="margin-top:10px;">
-              <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">ONE-SENTENCE CLASS TRIAL IDEA:</label>
-              <textarea placeholder="Write one sentence on what test or experiment you would try first with these tools..." rows="2" style="width:100%; padding:8px; border:1px solid var(--card-border); border-radius:6px; font-size:0.8rem; margin-top:4px; font-family:inherit;"></textarea>
-            </div>
-            <div style="font-size:0.74rem; color:var(--text-muted); margin-top:4px; font-style:italic;">
-              Note: Explore these emerging tools in class discussions as practical hands-on exercises.
-            </div>
-          `;
-          break;
-      }
-
-      return `
-        <div class="activity-badge">Interactive Challenge</div>
-        <div class="activity-title">${act.title}</div>
-        ${bodyHtml}
-      `;
-    }
-
-    function bindActivityEvents(data) {
-      // Stub for any post-DOM injection binders if needed
-    }
-
-    /* Activity handlers */
-    let matchAnswers = {};
-    function handleMatchSelect(btn, taskIdx, correctTool) {
-      const parentRow = btn.parentElement;
-      parentRow.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
-      btn.classList.add("selected");
-
-      matchAnswers[taskIdx] = btn.getAttribute("data-tool") === correctTool;
-
-      const fb = document.getElementById("match-feedback");
-      if (Object.keys(matchAnswers).length >= 3) {
-        const allCorrect = Object.values(matchAnswers).every(v => v === true);
-        fb.className = "feedback-banner show " + (allCorrect ? "success" : "info");
-        fb.innerText = allCorrect
-          ? "🎉 Excellent! You matched all three tools to their ideal tasks perfectly."
-          : "Almost there! Double-check which tool specializes in custom camera training vs multi-object boxes.";
-      }
-    }
-
-    function handleQuizAnswer(btn, isCorrect, feedbackText) {
-      const parent = btn.parentElement;
-      parent.querySelectorAll(".scenario-btn").forEach(b => b.classList.remove("correct", "wrong"));
-      btn.classList.add(isCorrect ? "correct" : "wrong");
-
-      const fb = document.getElementById("quiz-feedback");
-      fb.className = "feedback-banner show " + (isCorrect ? "success" : "info");
-      fb.innerText = (isCorrect ? "✅ " : "💡 ") + feedbackText;
-    }
-
-    function checkPipelineOrder() {
-      const selects = document.querySelectorAll(".pipeline-select");
-      let allCorrect = true;
-      selects.forEach(s => {
-        if (s.value !== s.getAttribute("data-correct")) allCorrect = false;
-      });
-
-      const fb = document.getElementById("pipeline-feedback");
-      fb.className = "feedback-banner show " + (allCorrect ? "success" : "info");
-      fb.innerText = allCorrect
-        ? "🎯 Correct! Step 1: Capture & Preprocess -> Step 2: Model Inference -> Step 3: Threshold & Overlay."
-        : "Not quite in sequence yet. Remember: we must first capture the camera image, pass it through the model, and then draw the visual output.";
-    }
-
-    function generateHelperSummary() {
-      const goal = document.getElementById("helper-goal").value;
-      const checkedBoxes = Array.from(document.querySelectorAll(".check-pill input:checked")).map(c => c.value.split(" ")[0]);
-      const fb = document.getElementById("helper-feedback");
-      fb.className = "feedback-banner show info";
-      fb.innerHTML = `<strong>✨ Architecture Blueprint:</strong> For <em>"${goal}"</em>, your pipeline combines <strong>${checkedBoxes.join(", ")}</strong> to deliver an interactive, grounded student co-pilot.`;
-    }
-
-    function checkAgentSort(btn, correctCategory, chosenCategory) {
-      const parent = btn.parentElement;
-      parent.querySelectorAll("button").forEach(b => b.classList.remove("correct", "wrong"));
-      if (correctCategory === chosenCategory) {
-        btn.classList.add("correct");
-      } else {
-        btn.classList.add("wrong");
-      }
-    }
-
-    /* Accessible text-only modal */
-    function openAccessibleModal() {
-      document.getElementById("accessible-list-modal").classList.add("open");
-    }
-
-    function closeAccessibleModal() {
-      document.getElementById("accessible-list-modal").classList.remove("open");
-    }
-
-    function populateAccessibleList() {
-      const container = document.getElementById("accessible-items-list");
-      container.innerHTML = COURSE_ISLANDS.map(island => `
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong style="color:#0f172a; font-size:1rem;">Island ${island.id}: ${island.unitNum} - ${island.title}</strong>
-            <button class="btn" style="padding:4px 12px; font-size:0.75rem;" onclick="closeAccessibleModal(); openIsland('${island.id}');">Explore Island ${island.id}</button>
-          </div>
-          <p style="font-size:0.82rem; color:#64748b; margin-top:6px;">${island.intro}</p>
-          <ul style="font-size:0.8rem; margin-left:20px; margin-top:8px; color:#334155;">
-            ${island.lessons.map(l => `<li><strong>${l.num}</strong>: ${l.title} - <em>${l.desc}</em></li>`).join("")}
-          </ul>
-        </div>
-      `).join("");
-    }
-
-    /* =========================================================================
-       5. LOW-STIMULATION MODE
-       ========================================================================= */
-    function toggleLowStim() {
-      enableLowStimMode(!isLowStim);
-    }
-
-    function enableLowStimMode(enable) {
-      isLowStim = enable;
-      const btn = document.getElementById("btn-low-stim");
-
-      if (isLowStim) {
-        document.body.classList.add("low-stim");
-        btn.classList.add("active");
-        btn.innerHTML = `<span>🌿</span><span>Low-stim: ON</span>`;
-        isBobbing = false;
-
-        // Simplify Three.js scene: stop motion, flat neutral sky
-        if (scene) scene.background = new THREE.Color(0xf1f5f9);
-        if (cloudGroup) cloudGroup.visible = false;
-
-        // Auto-mute audio in low-stim mode
-        if (isAudioPlaying) {
-          toggleAudio();
-        }
-      } else {
-        document.body.classList.remove("low-stim");
-        btn.classList.remove("active");
-        btn.innerHTML = `<span>🌿</span><span>Low-stimulation mode</span>`;
-        isBobbing = true;
-
-        if (scene) scene.background = new THREE.Color(0xdbeafe);
-        if (cloudGroup) cloudGroup.visible = true;
-      }
-    }
-
-    /* =========================================================================
-       6. PROCEDURAL BROWSER AMBIENT MUSIC (WEB AUDIO API - ZERO ASSETS)
-       ========================================================================= */
+    /* ==========================================================================
+       3. WEB AUDIO API SYNTHESIZER (Calm Ambient Music)
+       ========================================================================== */
     let audioCtx = null;
-    let isAudioPlaying = false;
     let masterGain = null;
-    let synthTimer = null;
-    let currentVolume = 0.4;
+    let isMusicPlaying = false;
+    let musicTimer = null;
+    let droneOscs = [];
 
-    // Pentatonic scale (C4, D4, E4, G4, A4, C5) for serene, non-intrusive ambient harmony
+    // Soothing Pentatonic Chime Frequencies (Hz)
     const PENTATONIC_FREQS = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 659.25];
 
-    function initAudio() {
+    function initWebAudio() {
       if (audioCtx) return;
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContextClass();
 
       masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(currentVolume, audioCtx.currentTime);
-
-      // Low-pass filter to ensure sound is warm, soft, and non-harsh
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(800, audioCtx.currentTime);
-
-      masterGain.connect(filter);
-      filter.connect(audioCtx.destination);
+      const savedVol = parseFloat(localStorage.getItem('ai_course_music_vol') || '0.35');
+      masterGain.gain.setValueAtTime(savedVol, audioCtx.currentTime);
+      masterGain.connect(audioCtx.destination);
     }
 
-    function toggleAudio() {
-      if (!isAudioPlaying) {
-        initAudio();
-        if (audioCtx.state === "suspended") {
-          audioCtx.resume();
-        }
-        isAudioPlaying = true;
-        document.getElementById("music-icon").innerText = "🎵";
-        document.getElementById("music-label").innerText = "Music: On";
-        document.getElementById("btn-music").classList.add("active");
-        document.getElementById("volume-wrapper").style.display = "flex";
-        scheduleNextAmbientNote();
-      } else {
-        isAudioPlaying = false;
-        document.getElementById("music-icon").innerText = "🔇";
-        document.getElementById("music-label").innerText = "Music: Off";
-        document.getElementById("btn-music").classList.remove("active");
-        document.getElementById("volume-wrapper").style.display = "none";
-        if (synthTimer) clearTimeout(synthTimer);
+    function startAmbientMusic() {
+      initWebAudio();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
+
+      if (isMusicPlaying) return;
+      isMusicPlaying = true;
+
+      // 1. Warm breathing pad drone (Sine + Triangle through gentle 500Hz lowpass)
+      const droneFilter = audioCtx.createBiquadFilter();
+      droneFilter.type = 'lowpass';
+      droneFilter.frequency.setValueAtTime(520, audioCtx.currentTime);
+
+      const droneGain = audioCtx.createGain();
+      droneGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      droneGain.connect(masterGain);
+      droneFilter.connect(droneGain);
+
+      // Chord root & fifth: C3 (130.81Hz), G3 (196.00Hz), E3 (164.81Hz)
+      const chordNotes = [130.81, 196.00, 164.81];
+      droneOscs = chordNotes.map(freq => {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.connect(droneFilter);
+        osc.start();
+        return osc;
+      });
+
+      // 2. Slow melodic pentatonic chimes scheduled on random calm intervals
+      playNextChime();
+
+      updateAudioUI(true);
     }
 
-    function setAudioVolume(val) {
-      currentVolume = val / 100.0;
-      if (masterGain && audioCtx) {
-        masterGain.gain.setTargetAtTime(currentVolume, audioCtx.currentTime, 0.05);
-      }
+    function playNextChime() {
+      if (!isMusicPlaying || !audioCtx) return;
+
+      const freq = PENTATONIC_FREQS[Math.floor(Math.random() * PENTATONIC_FREQS.length)];
+      playSingleBell(freq);
+
+      // Next note in 2.2 to 4.2 seconds
+      const delay = 2200 + Math.random() * 2000;
+      musicTimer = setTimeout(playNextChime, delay);
     }
 
-    /* Plays a soft, slow-fading ambient chime */
-    function playSoftNote(freq, duration = 3.5) {
-      if (!audioCtx || !isAudioPlaying) return;
-
+    function playSingleBell(freq) {
+      if (!audioCtx || !masterGain) return;
       const osc = audioCtx.createOscillator();
       const noteGain = audioCtx.createGain();
 
-      osc.type = "sine";
+      osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-      // Gentle attack (1.2s) and peaceful long release (2.2s)
+      // Soft envelope (Gentle 80ms attack, 2.5s exponential decay)
       const now = audioCtx.currentTime;
       noteGain.gain.setValueAtTime(0.0001, now);
-      noteGain.gain.linearRampToValueAtTime(0.08, now + 1.2);
-      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      noteGain.gain.exponentialRampToValueAtTime(0.07, now + 0.08);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.6);
 
       osc.connect(noteGain);
       noteGain.connect(masterGain);
 
       osc.start(now);
-      osc.stop(now + duration + 0.1);
+      osc.stop(now + 2.7);
     }
 
-    function scheduleNextAmbientNote() {
-      if (!isAudioPlaying) return;
+    function stopAmbientMusic() {
+      if (!isMusicPlaying) return;
+      isMusicPlaying = false;
 
-      // Pick random harmonic note
-      const freq = PENTATONIC_FREQS[Math.floor(Math.random() * PENTATONIC_FREQS.length)];
-      playSoftNote(freq, 3.5 + Math.random() * 2.0);
-
-      // Occasionally add a gentle fifth/octave harmony
-      if (Math.random() > 0.5) {
-        setTimeout(() => {
-          if (isAudioPlaying) {
-            const harmFreq = PENTATONIC_FREQS[Math.floor(Math.random() * PENTATONIC_FREQS.length)];
-            playSoftNote(harmFreq, 4.0);
-          }
-        }, 800);
+      if (musicTimer) {
+        clearTimeout(musicTimer);
+        musicTimer = null;
       }
 
-      // Next note in 2.2 to 4.5 seconds
-      const delay = 2200 + Math.random() * 2200;
-      synthTimer = setTimeout(scheduleNextAmbientNote, delay);
+      droneOscs.forEach(osc => {
+        try { osc.stop(); osc.disconnect(); } catch (e) {}
+      });
+      droneOscs = [];
+
+      updateAudioUI(false);
     }
 
-    /* =========================================================================
-       7. MAIN ANIMATION & RENDERING LOOP
-       ========================================================================= */
-    const clock = new THREE.Clock();
+    function toggleAmbientMusic() {
+      if (lowStimulation) return; // Disabled in low stimulation
+      if (isMusicPlaying) {
+        stopAmbientMusic();
+      } else {
+        startAmbientMusic();
+      }
+    }
 
-    function animate() {
-      requestAnimationFrame(animate);
+    function setMusicVolume(val) {
+      if (masterGain && audioCtx) {
+        masterGain.gain.setTargetAtTime(val, audioCtx.currentTime, 0.05);
+      }
+      localStorage.setItem('ai_course_music_vol', val);
+    }
 
-      const delta = clock.getDelta();
-      const elapsed = clock.getElapsedTime();
+    function updateAudioUI(playing) {
+      const btn = document.getElementById('btn-audio-toggle');
+      const iconOff = document.getElementById('audio-icon-off');
+      const iconOn = document.getElementById('audio-icon-on');
 
-      // Smooth camera interpolation
-      if (isAnimatingCamera) {
-        camera.position.lerp(camTargetPos, 0.05);
-        controls.target.lerp(camLookTarget, 0.05);
+      if (playing) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        iconOff.style.display = 'none';
+        iconOn.style.display = 'inline-block';
+      } else {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+        iconOff.style.display = 'inline-block';
+        iconOn.style.display = 'none';
+      }
+    }
 
-        if (camera.position.distanceTo(camTargetPos) < 0.1 && controls.target.distanceTo(camLookTarget) < 0.1) {
-          isAnimatingCamera = false;
+    /* ==========================================================================
+       4. LOW-STIMULATION MODE LOGIC
+       ========================================================================== */
+    function setLowStimulationMode(enabled) {
+      lowStimulation = enabled;
+      const body = document.body;
+      const btn = document.getElementById('btn-low-stim');
+
+      if (enabled) {
+        body.classList.add('low-stim');
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+
+        // Mute and stop music
+        stopAmbientMusic();
+
+        // Hide star points, clouds, petals and butterflies
+        if (starsGroup) starsGroup.visible = false;
+        if (cloudGroup) cloudGroup.visible = false;
+        if (petalsGroup) petalsGroup.visible = false;
+        if (butterfliesGroup) butterfliesGroup.visible = false;
+
+        // Reset rings
+        islandMeshes.forEach(m => {
+          const r = m.getObjectByName("glowRing");
+          if (r) r.material.opacity = 0;
+        });
+
+      } else {
+        body.classList.remove('low-stim');
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+
+        if (starsGroup) starsGroup.visible = true;
+        if (cloudGroup) cloudGroup.visible = true;
+        if (petalsGroup) petalsGroup.visible = true;
+        if (butterfliesGroup) butterfliesGroup.visible = true;
+      }
+    }
+
+    /* ==========================================================================
+       5. CONTENT DRAWER & ACTIVITIES BUILDER
+       ========================================================================== */
+    function populateDrawer(island, index) {
+      document.getElementById('drawer-unit-badge').textContent = `Island ${island.id} • ${island.unit}`;
+      document.getElementById('drawer-unit-title').textContent = island.title;
+      document.getElementById('drawer-intro-text').textContent = island.intro;
+
+      // Populate Lessons list
+      const listEl = document.getElementById('drawer-lessons-list');
+      listEl.innerHTML = '';
+      island.lessons.forEach(l => {
+        const li = document.createElement('li');
+        li.className = 'lesson-item';
+        li.innerHTML = `
+          <div class="lesson-badge">${l.code}</div>
+          <div class="lesson-body">
+            <h4 class="lesson-name">${l.title}</h4>
+            <p class="lesson-desc">${l.desc}</p>
+          </div>
+        `;
+        listEl.appendChild(li);
+      });
+
+      // Populate Hands-On Activity Widget
+      const actBox = document.getElementById('drawer-activity-box');
+      actBox.innerHTML = '';
+      buildActivityWidget(island.activityType, actBox, island);
+    }
+
+    function openDrawer() {
+      document.getElementById('drawer-overlay').classList.add('open');
+      document.getElementById('island-drawer').classList.add('open');
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawer-overlay').classList.remove('open');
+      document.getElementById('island-drawer').classList.remove('open');
+      if (activeIslandIndex !== null) {
+        activeIslandIndex = null;
+        setHoverIsland(null);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       Activities Implementations
+       -------------------------------------------------------------------------- */
+    function buildActivityWidget(type, container, island) {
+      switch (type) {
+        case 'matching':
+          buildMatchingActivity(container);
+          break;
+        case 'scenario_quiz':
+          buildScenarioActivity(container);
+          break;
+        case 'pipeline_sort':
+          buildPipelineActivity(container);
+          break;
+        case 'helper_designer':
+          buildHelperDesignerActivity(container);
+          break;
+        case 'agent_sorting':
+          buildAgentSortingActivity(container);
+          break;
+        case 'tool_explorer':
+          buildToolExplorerActivity(container);
+          break;
+      }
+    }
+
+    /* Activity A: Match the Tool to the Task */
+    function buildMatchingActivity(c) {
+      c.innerHTML = `
+        <div class="activity-header">
+          <span class="activity-tag">Unit 1 Interactive Activity</span>
+          <h4 class="activity-title">Match the Tool to the Task</h4>
+          <p class="activity-instructions">Click a Tool on the left, then click its matching Task on the right.</p>
+        </div>
+        <div class="matching-game">
+          <div class="match-columns">
+            <div class="match-col" id="col-tools"></div>
+            <div class="match-col" id="col-tasks"></div>
+          </div>
+          <div class="feedback-banner" id="match-feedback"></div>
+        </div>
+      `;
+
+      const pairs = [
+        { id: 1, tool: 'Teachable Machine', task: 'Train quick custom webcam classifier without code' },
+        { id: 2, tool: 'MediaPipe Tasks', task: 'Fast, on-device perceptual vision pipelines' },
+        { id: 3, tool: 'Google Antigravity', task: 'Recognize objects in static photos & live video' },
+        { id: 4, tool: 'Personal Web Page', task: 'Document experiments & showcase your course portfolio' }
+      ];
+
+      let selectedTool = null;
+      let matchedCount = 0;
+
+      const colTools = c.querySelector('#col-tools');
+      const colTasks = c.querySelector('#col-tasks');
+      const feedback = c.querySelector('#match-feedback');
+
+      // Shuffle right column
+      const shuffledTasks = [...pairs].sort(() => Math.random() - 0.5);
+
+      pairs.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'match-card';
+        btn.textContent = p.tool;
+        btn.setAttribute('data-id', p.id);
+        btn.onclick = () => {
+          if (btn.classList.contains('matched')) return;
+          colTools.querySelectorAll('.match-card').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selectedTool = p.id;
+        };
+        colTools.appendChild(btn);
+      });
+
+      shuffledTasks.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'match-card';
+        btn.textContent = p.task;
+        btn.setAttribute('data-id', p.id);
+        btn.onclick = () => {
+          if (btn.classList.contains('matched')) return;
+          if (!selectedTool) {
+            feedback.className = 'feedback-banner info show';
+            feedback.textContent = 'Please choose a tool on the left first!';
+            return;
+          }
+
+          if (selectedTool === p.id) {
+            // Match found!
+            btn.classList.add('matched');
+            const toolBtn = colTools.querySelector(`.match-card[data-id="${p.id}"]`);
+            toolBtn.classList.remove('selected');
+            toolBtn.classList.add('matched');
+            selectedTool = null;
+            matchedCount++;
+
+            feedback.className = 'feedback-banner success show';
+            feedback.textContent = matchedCount === pairs.length
+              ? '🎉 Brilliant! All perceptual AI tools matched successfully!'
+              : '✨ Correct match! Keep going.';
+          } else {
+            feedback.className = 'feedback-banner info show';
+            feedback.textContent = 'Not quite a match. Give it another try!';
+          }
+        };
+        colTasks.appendChild(btn);
+      });
+    }
+
+    /* Activity B: Which task would you use? */
+    function buildScenarioActivity(c) {
+      c.innerHTML = `
+        <div class="activity-header">
+          <span class="activity-tag">Unit 2 Interactive Activity</span>
+          <h4 class="activity-title">Which Task Would You Use?</h4>
+          <p class="activity-instructions">Select the best MediaPipe task for each real-world scenario below.</p>
+        </div>
+        <div id="scenarios-list"></div>
+      `;
+
+      const scenarios = [
+        {
+          prompt: '1. You are building an app to count fitness squats by checking knee and hip joint angles:',
+          options: ['Pose Landmark Detection', 'Image Segmentation', 'Face Detection'],
+          correct: 0,
+          explanation: 'Pose Landmark Detection tracks 33 3D skeletal points including hips and knees.'
+        },
+        {
+          prompt: '2. You want a presenter to advance presentation slides using a thumbs-up or wave:',
+          options: ['Face Landmark Detection', 'Gesture Recognition', 'Image Segmentation'],
+          correct: 1,
+          explanation: 'Gesture Recognition identifies predefined hand signs in real time.'
+        },
+        {
+          prompt: '3. You need to blur a messy room behind a video conference participant:',
+          options: ['Image Segmentation', 'Pose Landmark Detection', 'Face Detection'],
+          correct: 0,
+          explanation: 'Image Segmentation separates foreground humans from background pixels.'
+        }
+      ];
+
+      const list = c.querySelector('#scenarios-list');
+      scenarios.forEach((s, sIdx) => {
+        const card = document.createElement('div');
+        card.className = 'scenario-card';
+        card.innerHTML = `
+          <div class="scenario-prompt">${s.prompt}</div>
+          <div class="choice-chips"></div>
+          <div class="feedback-banner" id="scen-fb-${sIdx}"></div>
+        `;
+
+        const chips = card.querySelector('.choice-chips');
+        const fb = card.querySelector(`#scen-fb-${sIdx}`);
+
+        s.options.forEach((opt, oIdx) => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.textContent = opt;
+          btn.onclick = () => {
+            chips.querySelectorAll('.choice-btn').forEach(b => {
+              b.classList.remove('correct', 'incorrect');
+            });
+            if (oIdx === s.correct) {
+              btn.classList.add('correct');
+              fb.className = 'feedback-banner success show';
+              fb.textContent = `Correct! ${s.explanation}`;
+            } else {
+              btn.classList.add('incorrect');
+              fb.className = 'feedback-banner info show';
+              fb.textContent = `Try again. Hint: ${s.explanation}`;
+            }
+          };
+          chips.appendChild(btn);
+        });
+
+        list.appendChild(card);
+      });
+    }
+
+    /* Activity C: Put the Pipeline in Order */
+    function buildPipelineActivity(c) {
+      const steps = [
+        { id: 1, text: '1. Video Frame Input (Webcam stream captured in browser)' },
+        { id: 2, text: '2. Preprocessing & Normalization (Resize to model dimensions)' },
+        { id: 3, text: '3. Real-Time Model Inference (YOLO or Style Transfer)' },
+        { id: 4, text: '4. Creative Output (Render bounding boxes or styled 3D canvas)' }
+      ];
+
+      // Shuffle starting order
+      let currentOrder = [...steps].sort(() => Math.random() - 0.5);
+
+      c.innerHTML = `
+        <div class="activity-header">
+          <span class="activity-tag">Unit 3 Interactive Activity</span>
+          <h4 class="activity-title">Put the Creative AI Pipeline in Order</h4>
+          <p class="activity-instructions">Use the arrows to arrange the pipeline from input to output.</p>
+        </div>
+        <div class="pipeline-list" id="pipe-list"></div>
+        <button class="tool-btn active" id="btn-check-pipeline" style="width:100%; justify-content:center; padding:10px;">Check Pipeline Order</button>
+        <div class="feedback-banner" id="pipe-feedback"></div>
+      `;
+
+      const listEl = c.querySelector('#pipe-list');
+      const fb = c.querySelector('#pipe-feedback');
+
+      function renderPipeList() {
+        listEl.innerHTML = '';
+        currentOrder.forEach((step, idx) => {
+          const div = document.createElement('div');
+          div.className = 'pipeline-step';
+          div.innerHTML = `
+            <span>${step.text}</span>
+            <div class="step-arrows">
+              <button class="arrow-btn" ${idx === 0 ? 'disabled' : ''} data-dir="-1" title="Move up">↑</button>
+              <button class="arrow-btn" ${idx === currentOrder.length - 1 ? 'disabled' : ''} data-dir="1" title="Move down">↓</button>
+            </div>
+          `;
+
+          div.querySelectorAll('.arrow-btn').forEach(btn => {
+            btn.onclick = () => {
+              const dir = parseInt(btn.getAttribute('data-dir'));
+              const targetIdx = idx + dir;
+              if (targetIdx >= 0 && targetIdx < currentOrder.length) {
+                const temp = currentOrder[idx];
+                currentOrder[idx] = currentOrder[targetIdx];
+                currentOrder[targetIdx] = temp;
+                renderPipeList();
+              }
+            };
+          });
+
+          listEl.appendChild(div);
+        });
+      }
+
+      renderPipeList();
+
+      c.querySelector('#btn-check-pipeline').onclick = () => {
+        const isCorrect = currentOrder.every((item, idx) => item.id === idx + 1);
+        if (isCorrect) {
+          fb.className = 'feedback-banner success show';
+          fb.textContent = '🌟 Perfect! That is the exact pipeline: Input → Preprocess → Infer → Output!';
+        } else {
+          fb.className = 'feedback-banner info show';
+          fb.textContent = 'Almost there! Make sure video frames start at the top and the creative rendering ends at the bottom.';
+        }
+      };
+    }
+
+    /* Activity D: Design Your Own Helper */
+    function buildHelperDesignerActivity(c) {
+      c.innerHTML = `
+        <div class="activity-header">
+          <span class="activity-tag">Unit 4 Interactive Activity</span>
+          <h4 class="activity-title">Design Your Own Gemini Helper</h4>
+          <p class="activity-instructions">Pick your goal and choose the multimodal features to combine.</p>
+        </div>
+        <div class="helper-form">
+          <div>
+            <label class="helper-label" for="helper-goal">Choose Your Goal:</label>
+            <select class="helper-select" id="helper-goal" style="width:100%; margin-top:4px;">
+              <option value="Research Assistant">Pforzheim Thesis & Paper Research Assistant</option>
+              <option value="Design Prototyper">Design Studio UI & Moodboard Generator</option>
+              <option value="Coding Copilot">Engineering Real-Time Python & Web Developer</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="helper-label">Select Gemini Features to Combine:</label>
+            <div class="features-grid" style="margin-top:6px;">
+              <label class="feature-check-label"><input type="checkbox" class="gem-feat" value="Gemini Notebook" checked> Gemini Notebook</label>
+              <label class="feature-check-label"><input type="checkbox" class="gem-feat" value="Gemini Canvas" checked> Gemini Canvas</label>
+              <label class="feature-check-label"><input type="checkbox" class="gem-feat" value="Custom Skills"> Custom Skills</label>
+              <label class="feature-check-label"><input type="checkbox" class="gem-feat" value="Data Connectors"> Data Connectors</label>
+              <label class="feature-check-label"><input type="checkbox" class="gem-feat" value="Scheduled Tasks"> Scheduled Tasks</label>
+            </div>
+          </div>
+
+          <div class="helper-output" id="helper-summary">
+            Generating your custom workflow profile...
+          </div>
+        </div>
+      `;
+
+      const goalSelect = c.querySelector('#helper-goal');
+      const featChecks = c.querySelectorAll('.gem-feat');
+      const summaryBox = c.querySelector('#helper-summary');
+
+      function updateSummary() {
+        const goal = goalSelect.value;
+        const selectedFeats = Array.from(featChecks).filter(cb => cb.checked).map(cb => cb.value);
+
+        if (selectedFeats.length === 0) {
+          summaryBox.innerHTML = `<em>Select at least one Gemini feature above to synthesize your helper blueprint.</em>`;
+          return;
+        }
+
+        summaryBox.innerHTML = `
+          <strong>Blueprint: ${goal}</strong><br>
+          Your tailored assistant combines <strong>${selectedFeats.join(', ')}</strong>.
+          It will synthesize research notes, draft multimodal visual artifacts, and execute automated actions cleanly for your coursework!
+        `;
+      }
+
+      goalSelect.onchange = updateSummary;
+      featChecks.forEach(cb => cb.onchange = updateSummary);
+      updateSummary();
+    }
+
+    /* Activity E: Agent or Chatbot? */
+    function buildAgentSortingActivity(c) {
+      c.innerHTML = `
+        <div class="activity-header">
+          <span class="activity-tag">Unit 5 Interactive Activity</span>
+          <h4 class="activity-title">Agent or Chatbot?</h4>
+          <p class="activity-instructions">Determine whether each capability describes a Chatbot or an Autonomous Agent.</p>
+        </div>
+        <div id="sorting-cards-wrap"></div>
+        <div class="reflection-box">
+          <label class="helper-label" for="agent-reflect">Reflection: What repetitive study task would you hand to an AI agent?</label>
+          <textarea class="reflection-textarea" id="agent-reflect" placeholder="e.g. Automatically checking course announcements, downloading reading PDFs, and writing a weekly summary..."></textarea>
+          <button class="tool-btn active" id="btn-save-reflect" style="align-self:flex-start; margin-top:4px;">Save Thought</button>
+          <div class="feedback-banner" id="reflect-fb"></div>
+        </div>
+      `;
+
+      const cards = [
+        {
+          statement: '"Answers questions directly in a conversational box, waiting for the user to prompt each next step."',
+          type: 'Chatbot',
+          why: 'Chatbots respond per prompt turn and do not autonomously execute outside tools.'
+        },
+        {
+          statement: '"Plans a sequence of steps, executes external APIs, reads files, and updates a database autonomously."',
+          type: 'Agent',
+          why: 'Agents formulate multi-step plans and interact directly with environments.'
+        }
+      ];
+
+      const wrap = c.querySelector('#sorting-cards-wrap');
+      cards.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'sorting-card';
+        card.innerHTML = `
+          <div class="sorting-statement">${item.statement}</div>
+          <div class="sorting-actions">
+            <button class="choice-btn" data-choice="Chatbot">Chatbot</button>
+            <button class="choice-btn" data-choice="Agent">Autonomous Agent</button>
+          </div>
+          <div class="feedback-banner" id="sort-fb-${idx}"></div>
+        `;
+
+        const fb = card.querySelector(`#sort-fb-${idx}`);
+        card.querySelectorAll('.choice-btn').forEach(btn => {
+          btn.onclick = () => {
+            const ch = btn.getAttribute('data-choice');
+            if (ch === item.type) {
+              btn.classList.add('correct');
+              fb.className = 'feedback-banner success show';
+              fb.textContent = `Correct! ${item.why}`;
+            } else {
+              btn.classList.add('incorrect');
+              fb.className = 'feedback-banner info show';
+              fb.textContent = `Try again. ${item.why}`;
+            }
+          };
+        });
+
+        wrap.appendChild(card);
+      });
+
+      // Reflection save logic
+      const saveBtn = c.querySelector('#btn-save-reflect');
+      const text = c.querySelector('#agent-reflect');
+      const rfFb = c.querySelector('#reflect-fb');
+
+      saveBtn.onclick = () => {
+        if (!text.value.trim()) {
+          rfFb.className = 'feedback-banner info show';
+          rfFb.textContent = 'Type a short idea before saving!';
+          return;
+        }
+        rfFb.className = 'feedback-banner success show';
+        rfFb.textContent = '✨ Thought saved to session reflection log! Great vision for agent delegation.';
+      };
+    }
+
+    /* Activity F: Tool Explorer Card Flip */
+    function buildToolExplorerActivity(c) {
+      c.innerHTML = `
+        <div class="activity-header">
+          <span class="activity-tag">Unit 6 Interactive Activity</span>
+          <h4 class="activity-title">Tool Explorer</h4>
+          <p class="activity-instructions">Select any 2 tools to compare side-by-side for your class exploration.</p>
+        </div>
+        <div class="tool-cards-grid" id="tools-grid"></div>
+        <div class="helper-output" id="comp-summary">Select two tools above to compare them.</div>
+        <div class="reflection-box" style="margin-top:14px;">
+          <label class="helper-label" for="tool-reflect">Which tool will you try first in class, and why?</label>
+          <input type="text" class="helper-select" id="tool-reflect" placeholder="One sentence on what you want to explore..." style="width:100%; margin-top:4px;">
+          <button class="tool-btn active" id="btn-save-tool-reflect" style="align-self:flex-start; margin-top:6px;">Record Choice</button>
+          <div class="feedback-banner" id="tool-reflect-fb"></div>
+        </div>
+      `;
+
+      const tools = [
+        { name: 'Meta Muse', category: 'Creative Ideation', note: 'Explore in class for creative design prompts.' },
+        { name: 'Manus Cue!', category: 'Workflow Prompting', note: 'Explore in class for creative cues and guidance.' },
+        { name: 'Hark Pro', category: 'Audio & Speech', note: 'Explore in class for vocal intelligence.' },
+        { name: 'OpenAI Dots', category: 'Micro-Agent Nodes', note: 'Explore in class for modular tool connectivity.' },
+        { name: 'Grok Bot', category: 'Conversational Analysis', note: 'Explore in class for real-time exploratory search.' },
+        { name: 'Claude Duet', category: 'Collaborative Pair', note: 'Explore in class for paired problem solving.' }
+      ];
+
+      const grid = c.querySelector('#tools-grid');
+      const compBox = c.querySelector('#comp-summary');
+      let selectedTools = [];
+
+      tools.forEach(t => {
+        const tile = document.createElement('div');
+        tile.className = 'tool-tile';
+        tile.innerHTML = `
+          <div class="tool-tile-title">${t.name}</div>
+          <div class="tool-tile-sub">${t.category}</div>
+        `;
+
+        tile.onclick = () => {
+          if (tile.classList.contains('active-comp')) {
+            tile.classList.remove('active-comp');
+            selectedTools = selectedTools.filter(x => x.name !== t.name);
+          } else {
+            if (selectedTools.length >= 2) {
+              // uncheck first
+              const old = selectedTools.shift();
+              grid.querySelectorAll('.tool-tile').forEach(el => {
+                if (el.querySelector('.tool-tile-title').textContent === old.name) {
+                  el.classList.remove('active-comp');
+                }
+              });
+            }
+            tile.classList.add('active-comp');
+            selectedTools.push(t);
+          }
+
+          if (selectedTools.length === 2) {
+            compBox.innerHTML = `
+              <strong>Side-by-Side Comparison:</strong><br>
+              • <strong>${selectedTools[0].name}</strong> (${selectedTools[0].category}) — ${selectedTools[0].note}<br>
+              • <strong>${selectedTools[1].name}</strong> (${selectedTools[1].category}) — ${selectedTools[1].note}<br>
+              <em>Both provide novel workflow perspectives for contemporary AI creators.</em>
+            `;
+          } else if (selectedTools.length === 1) {
+            compBox.innerHTML = `Selected <strong>${selectedTools[0].name}</strong>. Now pick a second tool to compare!`;
+          } else {
+            compBox.innerHTML = `Select two tools above to compare them.`;
+          }
+        };
+
+        grid.appendChild(tile);
+      });
+
+      const recBtn = c.querySelector('#btn-save-tool-reflect');
+      const inputRef = c.querySelector('#tool-reflect');
+      const recFb = c.querySelector('#tool-reflect-fb');
+
+      recBtn.onclick = () => {
+        if (!inputRef.value.trim()) {
+          recFb.className = 'feedback-banner info show';
+          recFb.textContent = 'Write a quick sentence about what you want to try!';
+          return;
+        }
+        recFb.className = 'feedback-banner success show';
+        recFb.textContent = '✨ Saved! Looking forward to your hands-on exploration in class.';
+      };
+    }
+
+    /* ==========================================================================
+       6. ACCESSIBLE "COURSE INDEX" MODAL
+       ========================================================================== */
+    function initAccessibleModal() {
+      const modal = document.getElementById('accessible-modal');
+      const list = document.getElementById('accessible-islands-list');
+      const openBtn = document.getElementById('btn-skip-3d');
+      const closeBtn = document.getElementById('btn-close-modal');
+      const fallbackBtn = document.getElementById('btn-fallback-open');
+
+      list.innerHTML = '';
+      COURSE_ISLANDS.forEach((island, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'accessible-island-btn';
+        btn.innerHTML = `
+          <div>
+            <div style="font-size:0.75rem; color:var(--accent); font-weight:700;">Island ${island.id} • ${island.unit}</div>
+            <div style="font-size:1.05rem; font-weight:800; color:var(--text-main);">${island.title}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">${island.lessons.length} lessons + hands-on activity</div>
+          </div>
+          <span style="font-size:1.2rem; color:var(--text-soft);">→</span>
+        `;
+        btn.onclick = () => {
+          modal.classList.remove('show');
+          focusIsland(idx);
+        };
+        list.appendChild(btn);
+      });
+
+      const showModal = () => modal.classList.add('show');
+      const hideModal = () => modal.classList.remove('show');
+
+      openBtn.onclick = showModal;
+      closeBtn.onclick = hideModal;
+      if (fallbackBtn) fallbackBtn.onclick = showModal;
+
+      modal.onclick = (e) => {
+        if (e.target === modal) hideModal();
+      };
+    }
+
+    /* ==========================================================================
+       7. KEYBOARD NAVIGATION & UI WIRING
+       ========================================================================== */
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('accessible-modal');
+        if (modal.classList.contains('show')) {
+          modal.classList.remove('show');
+        } else {
+          resetToOverview();
+        }
+      } else if (e.key === 'Tab') {
+        // Allow native tab flow between HUD labels and toolbar
+      } else if (e.key === 'Enter') {
+        // If an island is focused via keyboard, open it
+        if (hoveredIslandIndex !== null && activeIslandIndex === null) {
+          focusIsland(hoveredIslandIndex);
         }
       }
-
-      // Gentle island bobbing (disabled in low stimulation mode)
-      if (isBobbing && islandMeshes) {
-        islandMeshes.forEach(island => {
-          const ud = island.userData;
-          const bob = Math.sin(elapsed * ud.bobSpeed + ud.bobPhase) * 0.28;
-          island.position.y = ud.baseY + bob;
-        });
-      }
-
-      // Slow ambient cloud drift
-      if (cloudGroup && !isLowStim) {
-        cloudGroup.children.forEach(cloud => {
-          cloud.userData.angle += cloud.userData.speed;
-          cloud.position.x = Math.cos(cloud.userData.angle) * cloud.userData.radius;
-          cloud.position.z = Math.sin(cloud.userData.angle) * cloud.userData.radius;
-        });
-      }
-
-      controls.update();
-      renderer.render(scene, camera);
-
-      // Update 2D labels position over 3D objects
-      updateHtmlLabels();
     }
 
-    // Initialize once DOM is ready
-    window.addEventListener("DOMContentLoaded", () => {
-      init3D();
+    function dismissHint() {
+      const bubble = document.getElementById('hint-bubble');
+      if (bubble) bubble.classList.add('dismissed');
+    }
+
+    function initUIWiring() {
+      // 1. Hint close button
+      document.getElementById('btn-hint-close').onclick = dismissHint;
+
+      // 2. Overview Button
+      document.getElementById('btn-reset-cam').onclick = resetToOverview;
+      document.getElementById('btn-drawer-back').onclick = resetToOverview;
+
+      // 3. Drawer close button and backdrop
+      document.getElementById('btn-drawer-close').onclick = closeDrawer;
+      document.getElementById('drawer-overlay').onclick = closeDrawer;
+
+      // 4. Drawer Prev/Next Island Navigation
+      document.getElementById('btn-prev-island').onclick = () => {
+        if (activeIslandIndex === null) return;
+        const prevIdx = (activeIslandIndex - 1 + COURSE_ISLANDS.length) % COURSE_ISLANDS.length;
+        focusIsland(prevIdx);
+      };
+      document.getElementById('btn-next-island').onclick = () => {
+        if (activeIslandIndex === null) return;
+        const nextIdx = (activeIslandIndex + 1) % COURSE_ISLANDS.length;
+        focusIsland(nextIdx);
+      };
+
+      // 5. Ambient Music Toggle & Slider
+      document.getElementById('btn-audio-toggle').onclick = toggleAmbientMusic;
+      const volSlider = document.getElementById('vol-slider');
+      volSlider.oninput = (e) => setMusicVolume(parseFloat(e.target.value));
+
+      // Restore saved volume
+      const savedVol = localStorage.getItem('ai_course_music_vol');
+      if (savedVol) volSlider.value = savedVol;
+
+      // 6. Low-Stimulation Mode Toggle
+      const lowStimBtn = document.getElementById('btn-low-stim');
+      lowStimBtn.onclick = () => setLowStimulationMode(!lowStimulation);
+
+      // Check OS preference for reduced motion
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (prefersReducedMotion.matches) {
+        setLowStimulationMode(true);
+      }
+      prefersReducedMotion.addEventListener('change', (e) => {
+        setLowStimulationMode(e.matches);
+      });
+
+      // 7. Initialize Accessible Modal
+      initAccessibleModal();
+    }
+
+    /* ==========================================================================
+       Bootstrap Application
+       ========================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      initUIWiring();
+      init3DScene();
     });
   </script>
 </body>
